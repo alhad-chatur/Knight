@@ -22,7 +22,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 class Movement
 {
 public:
-    
+
     //related to jumping
     int jumpframeno = 0;
     int jumping = 0;
@@ -31,7 +31,7 @@ public:
     double jumpspeedx = 0.4f;
     float g = 0.1f;
     glm::vec3 posbeforejump = glm::vec3(0.0f);
-    float groundposy = -1.0f;
+    float groundposy = -0.95f;
 
     //related to attack
     int attacking = 0;
@@ -48,22 +48,22 @@ public:
 
     //related to falling
     int falling = 0;
-    double falltime = 0 , falltime1 = 0;
+    double falltime = 0, falltime1 = 0;
 
     //related to frames
     int FPS = 120;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;
-    
+
     //related to idling
     int idling = 0;
 
     int gamestart = 0;
     int playerdirectionx = 1;
-    
 
-    void feedframedata(int framenumber1,double deltatime1)
+
+    void feedframedata(int framenumber1, double deltatime1)
     {
         framenumber = framenumber1;
         deltatime = deltatime1;
@@ -71,24 +71,24 @@ public:
 
     bool idles(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidles)
     {
-        
+
         if (jumptime == 0 && attacktime == 0)
         {
             if (idling == 0)
                 *knighttex = knightidles;
-   
 
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
             {
                 gamestart = 1;
                 idling = 1;
                 knight->shader.use();
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-               
+
                 knight->shader.setFloat("add", add);
                 knight->shader.setFloat("addy", 0.0f);
                 knight->shader.setInt("texdirection", 1);
-                knight->settranform(0.0f, glm::vec3(walkspeed*deltatime, 0.0f, 0.0f));
+                knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
 
                 walking = 1;
                 playerdirectionx = 1;
@@ -104,7 +104,7 @@ public:
                 knight->shader.setFloat("add", -add);
                 knight->shader.setFloat("addy", 0.0f);
                 knight->shader.setInt("texdirection", -1);
-                knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime , 0.0f, 0.0f));
+                knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
 
                 walking = 1;
                 playerdirectionx = -1;
@@ -121,7 +121,7 @@ public:
                 knight->shader.setFloat("add", add);
                 knight->shader.setFloat("addy", -2.0f);
                 knight->shader.setInt("texdirection", 1);
-                knight->settranform(0.0f, glm::vec3(runspeed*deltatime, 0.0f, 0.0f));
+                knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
                 running = 1;
 
                 playerdirectionx = 1;
@@ -137,7 +137,7 @@ public:
                 knight->shader.setFloat("add", -add);
                 knight->shader.setInt("texdirection", -1);
                 knight->shader.setFloat("addy", -2.0f);
-                knight->settranform(0.0f, glm::vec3(-runspeed*deltatime, 0.0f, 0.0f));
+                knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
                 running = 1;
                 playerdirectionx = -1;
 
@@ -163,7 +163,7 @@ public:
 
     void jump(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightjump)
     {
-        if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && jumping == 0) || jumping != 0)
+        if (((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && jumping == 0) || jumping != 0) && falling == 0)
         {
             gamestart = 1;
             idling = 0;
@@ -194,7 +194,7 @@ public:
                 knight->shader.setFloat("addy", -10.0f);
                 knight->shader.setInt("texdirection", 1);
 
-                knight->settranform(0, glm::vec3(jumpspeedx*deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
+                knight->settranform(0, glm::vec3(jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
             }
             else if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && jumping == 0) || jumping == 2)
@@ -206,11 +206,11 @@ public:
                 knight->shader.setFloat("addy", -10.0f);
                 knight->shader.setInt("texdirection", -1);
 
-                knight->settranform(0, glm::vec3(-jumpspeedx * deltatime , ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
+                knight->settranform(0, glm::vec3(-jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
             }
 
-            else if (jumping == 0||jumping ==3)
+            else if (jumping == 0 || jumping == 3)
             {
                 jumping = 3;
                 knight->shader.use();
@@ -222,7 +222,7 @@ public:
 
             }
 
-            if (knight->center1.y <= (groundposy+ knight->length1.y/2))
+            if (knight->center1.y <= (groundposy + knight->length1.y / 2))
             {
                 knight->settranform(0, glm::vec3(0.0f, ((groundposy + knight->length1.y / 2) - knight->center1.y), 0.0f));
                 knight->center1.y = (groundposy + knight->length1.y / 2);
@@ -237,13 +237,13 @@ public:
 
     }
 
-    void attack(GLFWwindow* window,objectspace *knight,objecttexture *knighttex,objecttexture *knightattack)
+    void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack)
     {
-        if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && attacking==0) || attacking==1)
+        if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && attacking == 0) || attacking == 1)
         {
             gamestart = 0;
             idling = 0;
-            if (attacking==0)
+            if (attacking == 0)
             {
                 attacktime = 0;
                 attackframeno = 0;
@@ -271,44 +271,42 @@ public:
 
     }
 
-    void fall(objectspace* knight, objectspace* box)
+    void fall(objectspace* knight)
     {
-        if (box->ontop == 1 ||falling ==1)
+        if ( falling == 1)
         {
-            if (glm::distance(knight->center1.x, box->center1.x) >= (box->length1.x / 2 + knight->length1.x / 2))
+            if (falling == 0)
             {
-                if (falling == 0)
-                {
-                    falltime = 0;
-                    falltime1 = 0;
+                falltime = 0;
+                falltime1 = 0;
 
-                }
-                falltime1 = falltime;
-                falltime += deltatime;
-                
-                falling = 1;
-                knight->settranform(0, glm::vec3(0, -5.0 * g * ((falltime*falltime) - (falltime1*falltime1)), 0));
-
-                if (knight->center1.y <= (groundposy + knight->length1.y / 2))
-                {
-                    knight->settranform(0, glm::vec3(0.0f, ((groundposy + knight->length1.y / 2) - knight->center1.y), 0.0f));
-                    knight->center1.y = (groundposy + knight->length1.y / 2);
-                    falling = 0;
-                    falltime = 0;
-                    falltime1 = 0;
-                    box->ontop = 0;
-                }
             }
-              
-        }
+            falltime1 = falltime;
+            falltime += deltatime;
+
+            falling = 1;
+            knight->settranform(0, glm::vec3(0, -20.0 * g * ((falltime * falltime) - (falltime1 * falltime1)), 0));
+
+            if (knight->center1.y <= (groundposy + knight->length1.y / 2))
+            {
+                knight->settranform(0, glm::vec3(0.0f, ((groundposy + knight->length1.y / 2) - knight->center1.y), 0.0f));
+                knight->center1.y = (groundposy + knight->length1.y / 2);
+                falling = 0;
+                falltime = 0;
+                falltime1 = 0;
+            }
+
+
+        };
 
     }
 
     void sidecollisionsolid(objectspace *knight, objectspace *box)
     {
         float distance =0;
-        if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2)
+        if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && box->ontop ==0)
         {
+            box->onside = 1;
 
             if (walking == 1)
                 distance = walkspeed * deltatime;
@@ -316,8 +314,9 @@ public:
             else if (running == 1)
                 distance = runspeed * deltatime;
 
-            else if (jumping == 1)
+            else if (jumping == 1 || jumping ==2)
                 distance = jumpspeedx * deltatime;
+
 
             if (jumping != 0)
                 jumpspeedx = 0;
@@ -333,20 +332,24 @@ public:
             walking = 0;
         }
         else
+
+        {
+            box->onside = 0;
             jumpspeedx = 0.4f;
+        }
     }
 
     void topcollisionsolid(objectspace* knight, objectspace *box)
     {
         if (jumping != 0 || falling!=0)
         {
-            if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > box->center1.y)
+            if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
                 if(jumping!=0)
                     knight->settranform(0, glm::vec3(0.0f, -((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
                 else if(falling!=0)
-                    knight->settranform(0, glm::vec3(0.0f, (5.0 * g * ((falltime * falltime) - (falltime1*falltime1))), 0.0f));
+                    knight->settranform(0, glm::vec3(0.0f, (20.0 * g * ((falltime * falltime) - (falltime1*falltime1))), 0.0f));
 
 
                 box->ontop = 1;
@@ -362,6 +365,33 @@ public:
             else
                 box->ontop = 0;
         }
+        else if((glm::distance(knight->center1.x, box->center1.x) >= (box->length1.x / 2 + knight->length1.x / 2) && falling == 0) && box->ontop==1)
+        {
+            falling = 1;
+            falltime = 0;
+            falltime1 = 0;
+            
+        }
+
+    }
+
+    void bottomcollisionsolid(objectspace* knight, objectspace* box)
+    {
+        if (jumping != 0 &&falling ==0)
+        {
+            if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y < box->center1.y)
+            {
+                jumping = 0;
+                jumptime = 0;
+                jumptime1 = 0;
+                falling = 1;
+                falltime = 0;
+                falltime1 = 0;
+            }
+
+
+       }
+
 
     }
 };
@@ -632,20 +662,42 @@ public:
     {
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
-            bg.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-            knight.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-            container.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-            container2.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-        
+            if (knightmovement.gamestart == 1)
+            {
+                bg.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                knight.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                container.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                container2.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+            }
+            else
+            {
+
+                bg.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                knight.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                container.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                container2.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
-            bg.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-            knight.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-            container.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-            container2.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+            if (knightmovement.gamestart == 1)
+            {
+                bg.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                knight.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                container.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                container2.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+            }
+            else
+            {
 
+                bg.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                knight.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                container.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                container2.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+
+            }
         }
         
     }
@@ -657,12 +709,13 @@ public:
         
         knightmovement.topcollisionsolid(&knight, &container);
         knightmovement.topcollisionsolid(&knight, &container2);
-        
+
+        knightmovement.bottomcollisionsolid(&knight, &container);
+        knightmovement.bottomcollisionsolid(&knight, &container2);
+
         knightmovement.jump(window, &knight, &knighttex, &knightjump);
 
-        knightmovement.fall(&knight, &container);
-        knightmovement.fall(&knight, &container2);
-
+        knightmovement.fall(&knight);
 
         knightmovement.attack(window, &knight, &knighttex, &knightattack);
         
@@ -703,7 +756,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", glfwGetPrimaryMonitor(), NULL);
+    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", NULL, NULL);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
