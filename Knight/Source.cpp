@@ -13,6 +13,12 @@
 int scrwidth = 1900;
 int scrheight = 1080;
 
+GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+
+GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 
@@ -396,8 +402,7 @@ public:
     }
 };
 
-
-class all
+class Level0
 {
 public:
     float objvertices[100] = {
@@ -432,7 +437,7 @@ public:
 
     objectspace container[3];
 
-    int containerno = 3;
+    int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
 
     objectspace temp;
 
@@ -465,12 +470,7 @@ public:
     float add;
     double framestart, frameend, deltatime = 0;
     float spriteanimationspeed = 1.3f; 
-    
-    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-
-    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-
-    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+   
 
     Movement knightmovement;
 
@@ -745,6 +745,58 @@ public:
     }
 };
 
+class Renderer
+{
+public:
+    Level0 level0;
+
+    void preset()
+    {
+        level0.initialize();
+        level0.getmatrix();
+    }
+
+    void loopprocess(GLFWwindow *window)
+    {
+        level0.framestart = glfwGetTime();
+        level0.changecursor = 0;
+
+        if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightmovement.gamestart == 0)
+            //Change Position Mode only before moving any character
+        {
+            level0.mouseresize(window);
+            level0.mousetranslate(window);
+
+            if (level0.changecursor == 0)
+                glfwSetCursor(window, NULL);
+        }
+        else //normal mode
+        {
+            level0.transform();
+            level0.processmovement(window);
+
+            glfwSetCursor(window, NULL);
+        }
+        level0.slidebackground(window);
+
+    }
+    void draw()
+    {
+        level0.draw();
+    }
+    void loopend()
+    {
+        level0.frameend = glfwGetTime();
+        level0.deltatime = level0.frameend - level0.framestart;
+    }
+    void postset()
+    {
+        level0.writematrix();
+    }
+
+
+};
+
 int main()
 {
     glfwInit();
@@ -759,51 +811,28 @@ int main()
 
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-    all game;
-    game.initialize();
-
-    game.getmatrix();
-
+    Renderer game;
+    game.preset();
     while (glfwWindowShouldClose(window) != 1)
     {
-        game.framestart = glfwGetTime();
-        game.changecursor = 0;
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS&&game.knightmovement.gamestart ==0) 
-          //Change Position Mode only before moving any character
-        {
-            game.mouseresize(window);
-            game.mousetranslate(window);
-            
-            if (game.changecursor == 0)
-                glfwSetCursor(window, NULL);
-        }
-        else //normal mode
-        {
-            game.transform();
-            game.processmovement(window);
-
-            glfwSetCursor(window, NULL);
-        }
-
-        game.slidebackground(window);
-
+        game.loopprocess(window);
+        
         game.draw();
 
         glfwSwapInterval(1);
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        game.frameend = glfwGetTime();
-        game.deltatime = game.frameend - game.framestart;
+        game.loopend();
     };
 
-    game.writematrix();
+    game.postset();
 
     glfwTerminate();
     return 0;
