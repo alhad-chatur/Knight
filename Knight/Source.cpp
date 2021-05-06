@@ -609,9 +609,9 @@ public:
 
     }
 
-    void writematrix()
+    void writematrix(const char* filename)
     {
-        std::ofstream file("modeldata.txt");
+        std::ofstream file(filename);
 
         knight.writedata("knight", &file);
 
@@ -623,15 +623,14 @@ public:
         file.close();
     }
 
-    void getmatrix()
+    void getmatrix(const char* filename)
     {
-        std::ifstream file2("modeldata.txt");
+        std::ifstream file2(filename);
 
         knight.readdata("knight", &file2);
 
         for (int i = 0; i < containerno; i++)
         {
-
 
             container[i].readdata("cont", &file2, i);
         }
@@ -753,11 +752,17 @@ public:
     void preset()
     {
         level0.initialize();
-        level0.getmatrix();
+        level0.getmatrix("Levels/level0.txt");
     }
 
     void loopprocess(GLFWwindow *window)
     {
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
+        
         level0.framestart = glfwGetTime();
         level0.changecursor = 0;
 
@@ -780,18 +785,25 @@ public:
         level0.slidebackground(window);
 
     }
+
     void draw()
     {
         level0.draw();
     }
-    void loopend()
+    void loopend(GLFWwindow* window)
     {
+        
+        glfwSwapInterval(1);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+        
         level0.frameend = glfwGetTime();
         level0.deltatime = level0.frameend - level0.framestart;
     }
     void postset()
     {
-        level0.writematrix();
+        level0.writematrix("Levels/level0.txt");
     }
 
 
@@ -812,26 +824,17 @@ int main()
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     Renderer game;
+
     game.preset();
+
     while (glfwWindowShouldClose(window) != 1)
     {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
-
         game.loopprocess(window);
         
         game.draw();
 
-        glfwSwapInterval(1);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-
-        game.loopend();
+        game.loopend(window);
     };
-
     game.postset();
 
     glfwTerminate();
