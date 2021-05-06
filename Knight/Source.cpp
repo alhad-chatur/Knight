@@ -396,6 +396,7 @@ public:
     }
 };
 
+
 class all
 {
 public:
@@ -429,9 +430,9 @@ public:
 
     objectspace knight;
 
-    objectspace container;
+    objectspace container[3];
 
-    objectspace container2;
+    int containerno = 3;
 
     objectspace temp;
 
@@ -492,11 +493,15 @@ public:
         knighttex = knightidles;
         knight.shader.setFloat("addy", 0.0f);
         
-        container.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
-        container.setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+        container[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
 
-        container2.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
-        container2.setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
+        container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
 
     }
 
@@ -519,27 +524,22 @@ public:
             }
             changecursor++;
         }
-
-        else if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container.center1) <= 0.1f)
+        else
         {
-            glfwSetCursor(window, shift);
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+            for (int i = 0; i < containerno; i++)
             {
-                container.setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container.center1.x, container.center1.y, container.center1.z));
+                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container[i].center1) <= 0.1f)
+                {
+                    glfwSetCursor(window, shift);
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container[i].center1.x, container[i].center1.y, container[i].center1.z));
+                    }
+                    changecursor++;
+                    break;
+                }
             }
-            changecursor++;
         }
-
-        else if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container2.center1) <= 0.1f)
-        {
-            glfwSetCursor(window, shift);
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-            {
-                container2.setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container2.center1.x, container2.center1.y, container2.center1.z));
-            }
-            changecursor++;
-        }
-
     }
 
     void mouseresize(GLFWwindow* window)
@@ -551,55 +551,33 @@ public:
         xmouse = (2 * xmouse / windowx) - 1;
         ymouse = -((2 * (ymouse) / windowy) - 1);
 
-        temp = container;
-        
-        if (((modulus(xmouse - temp.center1.x) >(0.45*temp.length1.x)) &&(modulus(xmouse - temp.center1.x)<(0.55*temp.length1.x))&& modulus(ymouse - temp.center1.y) <(0.5*temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) <(0.5*temp.length1.x))))
+        for (int i = 0; i < containerno; i++)
         {
-            if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
+            temp = container[i];
+
+            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
             {
-                glfwSetCursor(window, Hresize);
-                changecursor++;
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
                 {
-                    container.changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
-                
-                }
-            }
-            else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-            {
-                glfwSetCursor(window, Vresize);
-                changecursor++;
+                    glfwSetCursor(window, Hresize);
+                    changecursor++;
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
 
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    }
+                }
+                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
                 {
-                    container.changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f,1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
+                    glfwSetCursor(window, Vresize);
+                    changecursor++;
+
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
+                    }
                 }
-            }
-        }
-
-        temp = container2;
-
-        if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
-        {
-            if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
-            {
-                glfwSetCursor(window, Hresize);
-                changecursor++;
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    container2.changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
-
-                }
-            }
-            else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-            {
-                glfwSetCursor(window, Vresize);
-                changecursor++;
-
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    container2.changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
-                }
+                break;
             }
         }
 
@@ -637,9 +615,10 @@ public:
 
         knight.writedata("knight", &file);
 
-        container.writedata("cont", &file);
-
-        container2.writedata("cont2", &file);
+        for (int i = 0; i < containerno; i++)
+        {
+            container[i].writedata("cont", &file,i);
+        }
 
         file.close();
     }
@@ -650,9 +629,12 @@ public:
 
         knight.readdata("knight", &file2);
 
-        container.readdata("cont", &file2);
+        for (int i = 0; i < containerno; i++)
+        {
 
-        container2.readdata("cont2", &file2);
+
+            container[i].readdata("cont", &file2, i);
+        }
 
         file2.close();
     
@@ -666,17 +648,21 @@ public:
             {
                 bg.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 knight.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                container.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                container2.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                }
             }
             else
             {
 
                 bg.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 knight.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                container.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                container2.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                }
             }
         }
 
@@ -686,16 +672,20 @@ public:
             {
                 bg.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 knight.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                container.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                container2.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                }
             }
             else
             {
 
                 bg.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 knight.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                container.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                container2.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                }
 
             }
         }
@@ -706,12 +696,15 @@ public:
     {
         
         knightmovement.feedframedata(framenumber, deltatime);
-        
-        knightmovement.topcollisionsolid(&knight, &container);
-        knightmovement.topcollisionsolid(&knight, &container2);
 
-        knightmovement.bottomcollisionsolid(&knight, &container);
-        knightmovement.bottomcollisionsolid(&knight, &container2);
+        for (int i = 0; i < containerno; i++)
+        {
+            knightmovement.topcollisionsolid(&knight, &container[i]);
+        }
+        for (int i = 0; i < containerno; i++)
+        {
+            knightmovement.bottomcollisionsolid(&knight, &container[i]);
+        }
 
         knightmovement.jump(window, &knight, &knighttex, &knightjump);
 
@@ -721,8 +714,11 @@ public:
         
         knightmovement.idles(window, &knight, &knighttex, knightidles);
 
-        knightmovement.sidecollisionsolid(&knight, &container);
-        knightmovement.sidecollisionsolid(&knight, &container2);
+        for (int i = 0; i < containerno; i++)
+        {
+            knightmovement.sidecollisionsolid(&knight, &container[i]);
+        }
+
 
     }
 
@@ -731,11 +727,10 @@ public:
         
         knight.drawquad(knighttex);
 
+        for(int i=0;i<containerno;i++)
+        container[i].drawquad(containertex);
 
-        container.drawquad(containertex);
-
-        container2.drawquad(containertex);
-
+        
         bg.drawquad(bgtex);
 
     }
@@ -744,8 +739,9 @@ public:
     {
         bg.deinitialize();
         knight.deinitialize();
-        container.deinitialize();
-        container2.deinitialize();
+        
+        for(int i=0;i<containerno;i++)
+        container[i].deinitialize();
     }
 };
 

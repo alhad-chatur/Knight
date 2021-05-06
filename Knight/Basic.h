@@ -238,7 +238,7 @@ public:
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
     
-    void writedata(const char *spritename,std::ofstream *spritedatawrite)
+    void writedata(const char *spritename,std::ofstream *spritedatawrite,int arrayno =-1)
     {
         glm::mat4 temp;
         float tempa[16];
@@ -253,7 +253,12 @@ public:
             }
 
         }
-        *spritedatawrite << spritename<<"\n";
+        if (arrayno == -1)
+            *spritedatawrite << spritename << "\n";
+
+        else
+            *spritedatawrite << spritename << arrayno << "\n";
+
         for (int i = 0; i <= 15; i++)
         {
             *spritedatawrite << tempa[i] << "\t";
@@ -275,21 +280,28 @@ public:
         *spritedatawrite << "\n";
     }
     
-    void readdata(const char *spritename,std::ifstream *file)
+    void readdata(const char *spritename,std::ifstream *file,int arrayno =-1)
     {
         float tempa2[16];
         glm::mat4 temp2;
         glm::vec4 temptranslate = glm::vec4(0.0f);
         glm::vec4 tempscale = glm::vec4(1.0f);
 
+        std::string name;
         std::string line;
         std::stringstream geek;
             
+        if (arrayno == -1)
+            name = spritename;
+        else
+            name = spritename + std::to_string(arrayno);
+
+
         for (int i = 1; i > 0; i++)
         {
             std::getline(*file, line);
 
-            if (line == spritename)
+            if (line == name)
             {
                 break;
             };
