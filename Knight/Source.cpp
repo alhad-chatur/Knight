@@ -10,6 +10,33 @@
 #include"Basic.h"
 #include<fstream>
 
+
+float objvertices[100] = {
+    // positions          // colors           // texture coords
+     0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
+     0.5f, -0.5f, 0.0f,    1.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
+    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
+};
+unsigned int indices[10] = {
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
+float bgvertices[100] = {
+    // positions          // colors           // texture coords
+     0.5f,  0.5f, 0.0f,   15.f, 1.0f, // top right
+     0.5f, -0.5f, 0.0f,    15.f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f,    -15.f, 0.0f, // bottom left
+    -0.5f,  0.5f, 0.0f,    -15.f, 1.0f  // top left 
+};
+float spritevertices[100] = {
+    // positions          // colors           // texture coords
+     0.5f,  0.5f, 0.0f,   0.1f, 1.0f, // top right
+     0.5f, -0.5f, 0.0f,    0.1f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
+    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
+};
+
 int scrwidth = 1900;
 int scrheight = 1080;
 
@@ -405,31 +432,6 @@ public:
 class Level0
 {
 public:
-    float objvertices[100] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,    1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
-    };
-    unsigned int indices[10] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
-    float bgvertices[100] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   15.f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,    15.f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    -15.f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    -15.f, 1.0f  // top left 
-    };
-    float spritevertices[100] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   0.1f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,    0.1f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
-    };
 
     objectspace bg;
 
@@ -744,52 +746,302 @@ public:
     }
 };
 
+class Menu
+{
+public:
+
+    objectspace bg;
+
+    objectspace container[4];
+
+    int containerno = 4; //when adding new containers do uncomment the game.getmatrix() function for one time
+
+    objectspace temp;
+
+    objecttexture bgtex = objecttexture("textures/grass.png", 1);
+
+    objecttexture containertex = objecttexture("textures/container.jpg", 2);
+
+    objecttexture starttex = objecttexture("textures/start.png", 1); //container[0]
+
+    objecttexture optionstex = objecttexture("textures/options.png", 1); //container[1]
+
+    objecttexture exittex = objecttexture("textures/exit.png", 1); //container[2]
+
+    objecttexture arrowtex = objecttexture("textures/arrow.png", 1); //container[containerno-1]
+
+    //related to the window
+    int windowx, windowy;
+    double xmouse, ymouse;
+
+    //general
+    int changecursor = 0;
+
+    //related to frames
+    int FPS = 120;
+    int framenumber = 1;
+    float add;
+    double framestart, frameend, deltatime = 0;
+    float spriteanimationspeed = 1.3f;
+
+    //related to pointer
+    int pointerpos = 0;
+    float pointertime = 0;
+
+
+    void transform()
+    {
+        framenumber++;
+        if (framenumber == FPS / spriteanimationspeed)
+            framenumber = 1;
+
+    }
+
+    void initialize()
+    {
+        bg.intitialize(bgvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg.setmodel(0, glm::vec3(0.0f, -0.75f, 0.0f), glm::vec3(20.0f, 0.5f, 1.0f));
+
+        container[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+
+        container[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
+        container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
+        container[3].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[3].setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
+    }
+
+    void mousetranslate(GLFWwindow* window)
+    {
+        glfwGetCursorPos(window, &xmouse, &ymouse);
+
+        glfwGetWindowSize(window, &windowx, &windowy);
+
+        xmouse = (2 * xmouse / windowx) - 1;
+        ymouse = -((2 * (ymouse) / windowy) - 1);
+
+            for (int i = 0; i < containerno; i++)
+            {
+                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container[i].center1) <= 0.05f)
+                {
+                    glfwSetCursor(window, shift);
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container[i].center1.x, container[i].center1.y, container[i].center1.z));
+                    }
+                    changecursor++;
+                    break;
+                }
+            }
+    }
+
+    void mouseresize(GLFWwindow* window)
+    {
+        glfwGetCursorPos(window, &xmouse, &ymouse);
+
+        glfwGetWindowSize(window, &windowx, &windowy);
+
+        xmouse = (2 * xmouse / windowx) - 1;
+        ymouse = -((2 * (ymouse) / windowy) - 1);
+
+        for (int i = 0; i < containerno; i++)
+        {
+            temp = container[i];
+
+            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
+            {
+                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
+                {
+                    glfwSetCursor(window, Hresize);
+                    changecursor++;
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
+
+                    }
+                }
+                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
+                {
+                    glfwSetCursor(window, Vresize);
+                    changecursor++;
+
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
+                    }
+                }
+                break;
+            }
+        }
+
+
+    }
+
+    void writematrix(const char* filename)
+    {
+        std::ofstream file(filename);
+
+        for (int i = 0; i < containerno; i++)
+        {
+            container[i].writedata("cont", &file, i);
+        }
+
+        file.close();
+    }
+
+    void getmatrix(const char* filename)
+    {
+        std::ifstream file2(filename);
+
+        for (int i = 0; i < containerno; i++)
+        {
+
+            container[i].readdata("cont", &file2, i);
+        }
+
+        file2.close();
+
+    }
+
+    void togglepointer(GLFWwindow* window)
+    {
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && pointertime ==0)
+        {
+            pointerpos++;
+            pointertime = 0.2;
+            if (pointerpos > containerno - 2) //2 bcoz last container is pointer itself
+                pointerpos = 0;
+        }
+        else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime ==0)
+        {
+            pointerpos--;
+            pointertime = 0.2;
+            if (pointerpos < 0)
+                pointerpos = containerno - 2;
+        }
+        container[containerno-1].setview(0, glm::vec3(0, (container[pointerpos].center1.y - container[containerno-1].center1.y), 0));
+        pointertime -= deltatime;
+        if (pointertime < 0)
+            pointertime = 0;
+    }
+
+    void pointerfunctions(GLFWwindow* window,int *currentclass)
+    {
+        if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+            *currentclass = 0;
+        
+        if (pointerpos == 2 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window,1);
+    }
+
+    void draw()
+    {
+            container[0].drawquad(starttex);
+            container[1].drawquad(optionstex);
+            container[2].drawquad(exittex);
+            container[containerno-1].drawquad(arrowtex);
+
+    }
+
+    void deleteall()
+    {
+        bg.deinitialize();
+
+        for (int i = 0; i < containerno; i++)
+            container[i].deinitialize();
+    }
+
+};
+
 class Renderer
 {
 public:
-    Level0 level0;
+    Level0 level0; //0
+    Menu menu; //1
+
+    int currentclass = 1;
 
     void preset()
     {
         level0.initialize();
         level0.getmatrix("Levels/level0.txt");
+        menu.initialize();
+        menu.getmatrix("Levels/menu.txt");
+
     }
 
     void loopprocess(GLFWwindow *window)
     {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, true);
-        
-        level0.framestart = glfwGetTime();
-        level0.changecursor = 0;
-
-        if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightmovement.gamestart == 0)
-            //Change Position Mode only before moving any character
+        if (currentclass == 0)
         {
-            level0.mouseresize(window);
-            level0.mousetranslate(window);
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            
+            if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+                currentclass = 1;
 
-            if (level0.changecursor == 0)
+            level0.framestart = glfwGetTime();
+            level0.changecursor = 0;
+
+            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightmovement.gamestart == 0)
+                //Change Position Mode only before moving any character
+            {
+                level0.mouseresize(window);
+                level0.mousetranslate(window);
+
+                if (level0.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
+            else //normal mode
+            {
+                level0.transform();
+                level0.processmovement(window);
+
                 glfwSetCursor(window, NULL);
+            }
+            level0.slidebackground(window);
         }
-        else //normal mode
+        else if (currentclass == 1)
         {
-            level0.transform();
-            level0.processmovement(window);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            
+            menu.framestart = glfwGetTime();
+            menu.changecursor = 0;
+            
+            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)//Change Position Mode only before moving any character
+            {
+                menu.mouseresize(window);
+                menu.mousetranslate(window);
 
-            glfwSetCursor(window, NULL);
+                if (menu.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
+            else //normal mode
+            {
+                menu.transform();
+                menu.togglepointer(window);
+                menu.pointerfunctions(window,&currentclass);
+                glfwSetCursor(window, NULL);
+            }
+
         }
-        level0.slidebackground(window);
-
     }
 
     void draw()
     {
+        if(currentclass ==0)
         level0.draw();
+
+        else if(currentclass ==1)
+        menu.draw();
     }
+
     void loopend(GLFWwindow* window)
     {
         
@@ -797,13 +1049,22 @@ public:
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        
-        level0.frameend = glfwGetTime();
-        level0.deltatime = level0.frameend - level0.framestart;
+        if (currentclass == 0)
+        {
+            level0.frameend = glfwGetTime();
+            level0.deltatime = level0.frameend - level0.framestart;
+        }
+        else if (currentclass == 1)
+        {
+            menu.frameend = glfwGetTime();
+            menu.deltatime = menu.frameend - menu.framestart;
+        }
     }
+
     void postset()
     {
-        level0.writematrix("Levels/level0.txt");
+      level0.writematrix("Levels/level0.txt");
+      menu.writematrix("Levels/menu.txt");
     }
 
 
