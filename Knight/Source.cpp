@@ -435,6 +435,15 @@ class Level0
 {
 public:
 
+    float coinvertices[100] =
+    {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   0.166, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,    0.166, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
+    };
+    
     objectspace bg;
 
     objectspace knight;
@@ -446,8 +455,6 @@ public:
     objectspace coins[4];
 
     int coinnumber = 4;
-    
-    objectspace temp;
 
     objecttexture bgtex = objecttexture("textures/grass.png", 1);
 
@@ -464,16 +471,6 @@ public:
     objecttexture cointex = objecttexture("textures/coins.png", 1);
 
 
-    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-
-    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-
-    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-
-
-    //related to the window
-    int windowx, windowy;
-    double xmouse, ymouse;
     
     //related to background moving
     float slidebgspeed = 0.01f;
@@ -522,7 +519,7 @@ public:
        
         for (int i = 0; i < coinnumber; i++)
         {
-            coins[i].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+            coins[i].intitialize(coinvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
             coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
         }
         
@@ -531,121 +528,29 @@ public:
 
     void mousetranslate(GLFWwindow* window)
     {
-        glfwGetCursorPos(window, &xmouse, &ymouse);
+        mousetranslatesprite(window, &knight, &changecursor);
 
-        glfwGetWindowSize(window, &windowx, &windowy);
-
-        xmouse = (2 * xmouse / windowx) - 1;
-        ymouse = -((2 * (ymouse) / windowy) - 1);
-
-
-        if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), knight.center1) <= 0.1f)
-        {
-            glfwSetCursor(window, shift);
-            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-            {
-                knight.setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(knight.center1.x, knight.center1.y, knight.center1.z));
-            }
-            changecursor++;
-        }
-        else
-        {
+        
+       
             for (int i = 0; i < containerno; i++)
             {
-                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container[i].center1) <= 0.1f)
-                {
-                    glfwSetCursor(window, shift);
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container[i].center1.x, container[i].center1.y, container[i].center1.z));
-                    }
-                    changecursor++;
-                    break;
-                }
+                mousetranslatesprite(window, &container[i], &changecursor);
             }
             for (int i = 0; i < coinnumber; i++)
             {
-                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), coins[i].center1) <= 0.1f)
-                {
-                    glfwSetCursor(window, shift);
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        coins[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(coins[i].center1.x, coins[i].center1.y, coins[i].center1.z));
-                    }
-                    changecursor++;
-                    break;
-                }
+                mousetranslatesprite(window, &coins[i], &changecursor);
             }
 
-
-        }
     }
 
     void mouseresize(GLFWwindow* window)
     {
-        glfwGetCursorPos(window, &xmouse, &ymouse);
-
-        glfwGetWindowSize(window, &windowx, &windowy);
-
-        xmouse = (2 * xmouse / windowx) - 1;
-        ymouse = -((2 * (ymouse) / windowy) - 1);
-
         for (int i = 0; i < containerno; i++)
         {
-            temp = container[i];
-
-            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
-            {
-                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
-                {
-                    glfwSetCursor(window, Hresize);
-                    changecursor++;
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
-
-                    }
-                }
-                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-                {
-                    glfwSetCursor(window, Vresize);
-                    changecursor++;
-
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
-                    }
-                }
-                break;
-            }
+            mouseresizesprite(window, &container[i], &changecursor);
         }
 
-        temp = knight;
-        if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
-        {
-            if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
-            {
-                glfwSetCursor(window, Hresize);
-                changecursor++;
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    knight.changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
-
-                }
-            }
-            else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-            {
-                glfwSetCursor(window, Vresize);
-                changecursor++;
-
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    knight.changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
-
-                }
-            }
-        }
-
+        mouseresizesprite(window, &knight, &changecursor);
     }
 
     void writematrix(const char* filename)
@@ -788,6 +693,15 @@ public:
         knightmovement.collectiblecollision(&knight, &coins[i]);
 
         //coins
+        float add = 0;
+        for (int i = 0; i < coinnumber; i++)
+        {
+            coins[i].nsprites = 6;
+            
+            add = (1 / coins[i].nsprites) * (int)((framenumber *2.3 * coins[i].nsprites) / FPS);
+            coins[i].shader.use();
+            coins[i].shader.setFloat("add", add);
+        }
 
     }
 
@@ -823,13 +737,6 @@ class Menu
 {
 public:
 
-    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-
-    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-
-    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-
-
     objectspace bg;
 
     objectspace container[3];
@@ -837,8 +744,6 @@ public:
     int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
 
     objectspace pointer;
-
-    objectspace temp;
 
     objecttexture bgtex = objecttexture("textures/grass.png", 1);
 
@@ -850,11 +755,8 @@ public:
 
     objecttexture exittex = objecttexture("textures/exit.png", 1); //container[2]
 
-    objecttexture arrowtex = objecttexture("textures/arrow.png", 1); //container[containerno-1]
+    objecttexture arrowtex = objecttexture("textures/arrow.png", 1); 
 
-    //related to the window
-    int windowx, windowy;
-    double xmouse, ymouse;
 
     //general
     int changecursor = 0;
@@ -900,104 +802,25 @@ public:
 
     void mousetranslate(GLFWwindow* window)
     {
-        glfwGetCursorPos(window, &xmouse, &ymouse);
-
-        glfwGetWindowSize(window, &windowx, &windowy);
-
-        xmouse = (2 * xmouse / windowx) - 1;
-        ymouse = -((2 * (ymouse) / windowy) - 1);
 
             for (int i = 0; i < containerno; i++)
             {
-                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), container[i].center1) <= 0.05f)
-                {
-                    glfwSetCursor(window, shift);
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(container[i].center1.x, container[i].center1.y, container[i].center1.z));
-                    }
-                    changecursor++;
-                    break;
-                }
+                mousetranslatesprite(window, &container[i], &changecursor);
             }
-            if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), pointer.center1) <= 0.05f)
-            {
-                glfwSetCursor(window, shift);
-                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                {
-                    pointer.setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(pointer.center1.x,pointer.center1.y, pointer.center1.z));
-                }
-                changecursor++;
-            }
+            mousetranslatesprite(window, &pointer, &changecursor);
     }
 
     void mouseresize(GLFWwindow* window)
     {
-        glfwGetCursorPos(window, &xmouse, &ymouse);
-
-        glfwGetWindowSize(window, &windowx, &windowy);
-
-        xmouse = (2 * xmouse / windowx) - 1;
-        ymouse = -((2 * (ymouse) / windowy) - 1);
-
+   
         for (int i = 0; i < containerno; i++)
         {
-            temp = container[i];
+            mouseresizesprite(window, &container[i], &changecursor);
 
-            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
-            {
-                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
-                {
-                    glfwSetCursor(window, Hresize);
-                    changecursor++;
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
 
-                    }
-                }
-                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-                {
-                    glfwSetCursor(window, Vresize);
-                    changecursor++;
-
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        container[i].changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
-                    }
-                }
-                break;
-            }
-            temp = pointer;
-
-            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
-            {
-                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
-                {
-                    glfwSetCursor(window, Hresize);
-                    changecursor++;
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        pointer.changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
-
-                    }
-                }
-                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
-                {
-                    glfwSetCursor(window, Vresize);
-                    changecursor++;
-
-                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-                    {
-                        pointer.changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
-                    }
-                }
-
-            }
         }
-
-
-
+        mouseresizesprite(window, &pointer, &changecursor);
+        
     }
 
     void writematrix(const char* filename)

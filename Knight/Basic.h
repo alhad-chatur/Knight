@@ -379,3 +379,73 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 };
+
+void mousetranslatesprite(GLFWwindow* window, objectspace *sprite, int* changecursor)
+{
+    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    
+    int windowx, windowy;
+    double xmouse, ymouse;
+
+    glfwGetCursorPos(window, &xmouse, &ymouse);
+
+    glfwGetWindowSize(window, &windowx, &windowy);
+
+    xmouse = (2 * xmouse / windowx) - 1;
+    ymouse = -((2 * (ymouse) / windowy) - 1);
+
+
+    if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), sprite->center1) <= 0.1f)
+    {
+        glfwSetCursor(window, shift);
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        {
+            sprite->setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(sprite->center1.x, sprite->center1.y, sprite->center1.z));
+        }
+        *changecursor = *changecursor +1;
+    }
+}
+
+void mouseresizesprite(GLFWwindow* window,objectspace* sprite,int* changecursor)
+{
+    int windowx, windowy;
+    double xmouse, ymouse;
+    objectspace temp;
+    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+
+    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+
+
+    glfwGetCursorPos(window, &xmouse, &ymouse);
+
+    glfwGetWindowSize(window, &windowx, &windowy);
+
+    xmouse = (2 * xmouse / windowx) - 1;
+    ymouse = -((2 * (ymouse) / windowy) - 1);
+
+    temp = *sprite;
+
+    if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
+    {
+        if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
+        {
+            glfwSetCursor(window, Hresize);
+            *changecursor = *changecursor + 1;
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+            {
+                sprite->changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
+
+            }
+        }
+        else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
+        {
+            glfwSetCursor(window, Vresize);
+            *changecursor = *changecursor +1;
+
+            if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+            {
+                sprite->changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
+            }
+        }
+    }
+}
