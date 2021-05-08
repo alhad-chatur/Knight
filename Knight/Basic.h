@@ -94,6 +94,7 @@ public:
     glm::vec4 newmodelscale = glm::vec4(1.0f); //used to store the data in the file for changing the size of sprite
     int ontop =0;
     int onside = 0;
+    int contact = 0;
 
     void intitialize(float vertices[], unsigned int indices[], const char* vertexshader = "bg.vs", const char* fragmentshader = "bg.fs",int texdirection =1)
     {

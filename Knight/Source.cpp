@@ -421,6 +421,14 @@ public:
 
 
     }
+
+    void collectiblecollision(objectspace* knight, objectspace* coin)
+    {
+        if (glm::distance(knight->center1.x, coin->center1.x) <= (knight->length1.x + coin->length1.x) / 2 && glm::distance(knight->center1.y, coin->center1.y) <= (knight->length1.y + coin->length1.y) / 2 && coin->contact ==0)
+        {
+            coin->contact = 1;
+        }
+    }
 };
 
 class Level0
@@ -435,6 +443,10 @@ public:
 
     int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
 
+    objectspace coins[4];
+
+    int coinnumber = 4;
+    
     objectspace temp;
 
     objecttexture bgtex = objecttexture("textures/grass.png", 1);
@@ -448,6 +460,8 @@ public:
     objecttexture containertex = objecttexture("textures/container.jpg", 2);
 
     objecttexture knightidles = objecttexture("textures/idles.png", 1);
+
+    objecttexture cointex = objecttexture("textures/coins.png", 1);
 
 
     GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
@@ -505,6 +519,13 @@ public:
         container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
+       
+        for (int i = 0; i < coinnumber; i++)
+        {
+            coins[i].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+            coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
+        }
+        
 
     }
 
@@ -542,6 +563,21 @@ public:
                     break;
                 }
             }
+            for (int i = 0; i < coinnumber; i++)
+            {
+                if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), coins[i].center1) <= 0.1f)
+                {
+                    glfwSetCursor(window, shift);
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        coins[i].setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(coins[i].center1.x, coins[i].center1.y, coins[i].center1.z));
+                    }
+                    changecursor++;
+                    break;
+                }
+            }
+
+
         }
     }
 
@@ -623,6 +659,11 @@ public:
             container[i].writedata("cont", &file,i);
         }
 
+        for (int i = 0; i < coinnumber; i++)
+        {
+            coins[i].writedata("coin", &file, i);
+        }
+
         file.close();
     }
 
@@ -636,6 +677,10 @@ public:
         {
 
             container[i].readdata("cont", &file2, i);
+        }
+        for (int i = 0; i < coinnumber; i++)
+        {
+          coins[i].readdata("coin", &file2, i);
         }
 
         file2.close();
@@ -655,6 +700,11 @@ public:
                 {
                     container[i].settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                  coins[i].settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                }
+
             }
             else
             {
@@ -665,6 +715,11 @@ public:
                 {
                     container[i].setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                }
+
             }
         }
 
@@ -678,6 +733,10 @@ public:
                 {
                     container[i].settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                }
             }
             else
             {
@@ -688,6 +747,10 @@ public:
                 {
                     container[i].setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                }
 
             }
         }
@@ -696,7 +759,7 @@ public:
 
     void processmovement(GLFWwindow* window)
     {
-        
+        //knight
         knightmovement.feedframedata(framenumber, deltatime);
 
         for (int i = 0; i < containerno; i++)
@@ -721,6 +784,10 @@ public:
             knightmovement.sidecollisionsolid(&knight, &container[i]);
         }
 
+        for(int i =0;i<coinnumber;i++)
+        knightmovement.collectiblecollision(&knight, &coins[i]);
+
+        //coins
 
     }
 
@@ -732,6 +799,11 @@ public:
         for(int i=0;i<containerno;i++)
         container[i].drawquad(containertex);
 
+        for (int i = 0; i < coinnumber; i++)
+        {
+            if (coins[i].contact == 0)
+                coins[i].drawquad(cointex);
+        }
         
         bg.drawquad(bgtex);
 
@@ -760,9 +832,11 @@ public:
 
     objectspace bg;
 
-    objectspace container[4];
+    objectspace container[3];
 
-    int containerno = 4; //when adding new containers do uncomment the game.getmatrix() function for one time
+    int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
+
+    objectspace pointer;
 
     objectspace temp;
 
@@ -820,8 +894,8 @@ public:
         container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container[3].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
-        container[3].setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
+        pointer.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        pointer.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
     }
 
     void mousetranslate(GLFWwindow* window)
@@ -845,6 +919,15 @@ public:
                     changecursor++;
                     break;
                 }
+            }
+            if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), pointer.center1) <= 0.05f)
+            {
+                glfwSetCursor(window, shift);
+                if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                {
+                    pointer.setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(pointer.center1.x,pointer.center1.y, pointer.center1.z));
+                }
+                changecursor++;
             }
     }
 
@@ -885,7 +968,34 @@ public:
                 }
                 break;
             }
+            temp = pointer;
+
+            if (((modulus(xmouse - temp.center1.x) > (0.45 * temp.length1.x)) && (modulus(xmouse - temp.center1.x) < (0.55 * temp.length1.x)) && modulus(ymouse - temp.center1.y) < (0.5 * temp.length1.y)) || ((modulus(ymouse - temp.center1.y) > (0.45 * temp.length1.y)) && (modulus(ymouse - temp.center1.y) < (0.55 * temp.length1.y)) && (modulus(xmouse - temp.center1.x) < (0.5 * temp.length1.x))))
+            {
+                if (modulus(xmouse - temp.center1.x) > 0.45 * temp.length1.x)
+                {
+                    glfwSetCursor(window, Hresize);
+                    changecursor++;
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        pointer.changemodel(0, glm::vec3(0.0f), glm::vec3(1.05 * (modulus(xmouse - temp.center1.x) / (temp.length1.x / 2)), 1.0f, 1.0f));
+
+                    }
+                }
+                else if (modulus(ymouse - temp.center1.y) > 0.45 * temp.length1.y)
+                {
+                    glfwSetCursor(window, Vresize);
+                    changecursor++;
+
+                    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+                    {
+                        pointer.changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f, 1.05 * (modulus(ymouse - temp.center1.y) / (temp.length1.y / 2)), 1.0f));
+                    }
+                }
+
+            }
         }
+
 
 
     }
@@ -898,6 +1008,7 @@ public:
         {
             container[i].writedata("cont", &file, i);
         }
+        pointer.writedata("pointer", &file);
 
         file.close();
     }
@@ -911,6 +1022,7 @@ public:
 
             container[i].readdata("cont", &file2, i);
         }
+        pointer.readdata("pointer", &file2);
 
         file2.close();
 
@@ -922,7 +1034,7 @@ public:
         {
             pointerpos++;
             pointertime = pointerspeed;
-            if (pointerpos > containerno - 2) //2 bcoz last container is pointer itself
+            if (pointerpos > containerno - 1) //2 bcoz last container is pointer itself
                 pointerpos = 0;
         }
         else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime ==0)
@@ -930,9 +1042,9 @@ public:
             pointerpos--;
             pointertime = pointerspeed;
             if (pointerpos < 0)
-                pointerpos = containerno - 2;
+                pointerpos = containerno - 1;
         }
-        container[containerno-1].setview(0, glm::vec3((container[pointerpos].center1.x - container[containerno - 1].center1.x) -container[pointerpos].length1.x/2 -0.05f, (container[pointerpos].center1.y - container[containerno-1].center1.y), 0));
+        pointer.setview(0, glm::vec3((container[pointerpos].center1.x - pointer.center1.x) -container[pointerpos].length1.x/2 -0.05f, (container[pointerpos].center1.y - pointer.center1.y), 0));
         pointertime -= deltatime;
         if (pointertime < 0)
             pointertime = 0;
@@ -940,7 +1052,7 @@ public:
 
     void pointerfunctions(GLFWwindow* window,int *currentclass)
     {
-        container[containerno - 1].shader.setInt("texdirection", -1);
+        pointer.shader.setInt("texdirection", -1);
         
         if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
             *currentclass = 0;
@@ -954,7 +1066,7 @@ public:
             container[0].drawquad(starttex);
             container[1].drawquad(optionstex);
             container[2].drawquad(exittex);
-            container[containerno-1].drawquad(arrowtex);
+            pointer.drawquad(arrowtex);
 
     }
 
