@@ -10,5 +10,5 @@ void main()
 {
    
 	FragColor = texture(texture1,TexCoord);
-	FragColor = vec4(0.85*FragColor.r,0.85*FragColor.g,0.85*FragColor.b,FragColor.a);
+	FragColor = vec4(FragColor.r,FragColor.g,FragColor.b,FragColor.a);
 }

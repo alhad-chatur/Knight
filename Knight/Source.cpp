@@ -40,11 +40,6 @@ float spritevertices[100] = {
 int scrwidth = 1900;
 int scrheight = 1080;
 
-GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-
-GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-
-GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -119,7 +114,7 @@ public:
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
 
                 knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setFloat("addy", -0.0f);
                 knight->shader.setInt("texdirection", 1);
                 knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
 
@@ -135,7 +130,7 @@ public:
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
 
                 knight->shader.setFloat("add", -add);
-                knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setFloat("addy", -0.0f);
                 knight->shader.setInt("texdirection", -1);
                 knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
 
@@ -272,9 +267,8 @@ public:
 
     void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack)
     {
-        if ((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && attacking == 0) || attacking == 1)
+        if (((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1)
         {
-            gamestart = 0;
             idling = 0;
             if (attacking == 0)
             {
@@ -454,6 +448,13 @@ public:
     objecttexture containertex = objecttexture("textures/container.jpg", 2);
 
     objecttexture knightidles = objecttexture("textures/idles.png", 1);
+
+
+    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+
+    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
 
 
     //related to the window
@@ -750,6 +751,13 @@ class Menu
 {
 public:
 
+    GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+    GLFWcursor* Hresize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+
+    GLFWcursor* Vresize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+
+
     objectspace bg;
 
     objectspace container[4];
@@ -787,6 +795,7 @@ public:
     //related to pointer
     int pointerpos = 0;
     float pointertime = 0;
+    float pointerspeed = 0.18f;
 
 
     void transform()
@@ -912,18 +921,18 @@ public:
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && pointertime ==0)
         {
             pointerpos++;
-            pointertime = 0.2;
+            pointertime = pointerspeed;
             if (pointerpos > containerno - 2) //2 bcoz last container is pointer itself
                 pointerpos = 0;
         }
         else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime ==0)
         {
             pointerpos--;
-            pointertime = 0.2;
+            pointertime = pointerspeed;
             if (pointerpos < 0)
                 pointerpos = containerno - 2;
         }
-        container[containerno-1].setview(0, glm::vec3(0, (container[pointerpos].center1.y - container[containerno-1].center1.y), 0));
+        container[containerno-1].setview(0, glm::vec3((container[pointerpos].center1.x - container[containerno - 1].center1.x) -container[pointerpos].length1.x/2 -0.05f, (container[pointerpos].center1.y - container[containerno-1].center1.y), 0));
         pointertime -= deltatime;
         if (pointertime < 0)
             pointertime = 0;
@@ -931,6 +940,8 @@ public:
 
     void pointerfunctions(GLFWwindow* window,int *currentclass)
     {
+        container[containerno - 1].shader.setInt("texdirection", -1);
+        
         if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
             *currentclass = 0;
         
@@ -1014,13 +1025,13 @@ public:
             menu.framestart = glfwGetTime();
             menu.changecursor = 0;
             
-            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)//Change Position Mode only before moving any character
+            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
             {
                 menu.mouseresize(window);
                 menu.mousetranslate(window);
 
                 if (menu.changecursor == 0)
-                    glfwSetCursor(window, NULL);
+                   glfwSetCursor(window, NULL);
             }
             else //normal mode
             {
