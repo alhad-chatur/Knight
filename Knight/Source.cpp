@@ -1,14 +1,15 @@
 
 #include<glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb_image.h>
+#include<GLFW/glfw3.h>
+#include<stb_image.h>
 #include"Shader.h"
 #include<glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
+#include<glm/gtc/matrix_transform.hpp>
+#include<glm/gtc/type_ptr.hpp>
+#include<iostream>
 #include"Basic.h"
 #include<fstream>
+#include<irrklang/irrKlang.h>
 
 
 float objvertices[100] = {
@@ -40,6 +41,8 @@ float spritevertices[100] = {
 int scrwidth = 1900;
 int scrheight = 1080;
 
+irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -59,7 +62,7 @@ public:
     double jumpspeedx = 0.4f;
     float g = 0.1f;
     glm::vec3 posbeforejump = glm::vec3(0.0f);
-    float groundposy = -0.95f;
+    float groundposy = -0.78f;
 
     //related to attack
     int attacking = 0;
@@ -87,6 +90,11 @@ public:
     //related to idling
     int idling = 0;
 
+    //related to sliding
+    int sliding = 0;
+    double slidetime = 0;
+    unsigned int slideframeno = 0;
+
     int gamestart = 0;
     int playerdirectionx = 1;
 
@@ -100,13 +108,13 @@ public:
     bool idles(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidles)
     {
 
-        if (jumptime == 0 && attacktime == 0)
+        if (jumptime == 0 && attacktime == 0 &&slidetime ==0)
         {
             if (idling == 0)
                 *knighttex = knightidles;
 
 
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
             {
                 gamestart = 1;
                 idling = 1;
@@ -122,7 +130,7 @@ public:
                 playerdirectionx = 1;
 
             }
-            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
             {
                 gamestart = 1;
                 idling = 1;
@@ -140,7 +148,7 @@ public:
             else
                 walking = 0;
 
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
             {
                 gamestart = 1;
                 idling = 1;
@@ -156,7 +164,7 @@ public:
 
 
             }
-            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
             {
                 gamestart = 1;
                 idling = 1;
@@ -298,6 +306,59 @@ public:
 
     }
 
+    void slide(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightslide)
+    {
+        if (((glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1)
+        {
+            idling = 0;
+            if (sliding == 0)
+            {
+                slidetime = 0;
+                slideframeno = 0;
+                
+                
+               knight->changemodel(0, glm::vec3(0), glm::vec3(1.3f, 0.8f, 1.0f));
+              /* if (playerdirectionx == 1)
+                    knight->settranform(0, glm::vec3(0.25 * knight->length1.x / 2, -0.2 * knight->length1.y / 2, 0.0f));
+                else if (playerdirectionx == -1)
+                    knight->settranform(0, glm::vec3(-0.25 * knight->length1.x / 2, -0.2 * knight->length1.y / 2, 0.0f));
+                */    
+            }
+            slideframeno++;
+            slidetime += deltatime;
+
+            sliding = 1;
+            *knighttex = *knightslide;
+            knight->shader.use();
+            add = (1 / knight->nsprites) * (int)((slideframeno *knight->speed* knight->nsprites) / FPS);
+            if (playerdirectionx == -1)
+                add = 1 - add;
+
+           
+
+            knight->shader.setFloat("add", add);
+            knight->shader.setFloat("addy", -10.0f);
+            knight->shader.setInt("texdirection", playerdirectionx);
+
+            if (slidetime >= 0.8)
+            {
+                sliding = 0;
+                slidetime = 0;
+                slideframeno = 0;
+                
+                /*if (playerdirectionx == 1)
+                    knight->settranform(0, glm::vec3(-0.125* knight->length1.x / 2, 0.2 * knight->length1.y / 2, 0.0f));
+                else if (playerdirectionx == -1)
+                    knight->settranform(0, glm::vec3(0.125 * knight->length1.x / 2, 0.2 * knight->length1.y / 2, 0.0f));
+                  */  
+                knight->changemodel(0, glm::vec3(0), glm::vec3(0.769f,1.25f, 1.0f));
+                
+            }
+
+
+        }
+    };
+
     void fall(objectspace* knight)
     {
         if ( falling == 1)
@@ -422,11 +483,12 @@ public:
 
     }
 
-    void collectiblecollision(objectspace* knight, objectspace* coin)
+    void collectiblecollision(objectspace* knight, objectspace* coin,const char* audio)
     {
         if (glm::distance(knight->center1.x, coin->center1.x) <= (knight->length1.x + coin->length1.x) / 2 && glm::distance(knight->center1.y, coin->center1.y) <= (knight->length1.y + coin->length1.y) / 2 && coin->contact ==0)
         {
             coin->contact = 1;
+            soundengine->play2D(audio);
         }
     }
 };
@@ -443,8 +505,19 @@ public:
         -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
         -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
     };
+
+    float texmapvertices[100]
+    {
+        // positions          // colors           // texture coords
+         1.0f,  1.0f, 0.0f,   1.0f, 1.0f, // top right
+         1.0f, -1.0f, 0.0f,    1.0f, 0.0f, // bottom right
+        -1.0f, -1.0f, 0.0f,    0.0f, 0.0f, // bottom left
+        -1.0f,  1.0f, 0.0f,    0.0f, 1.0f  // top left 
+    };
     
     objectspace bg;
+
+    objectspace tilemap;
 
     objectspace knight;
 
@@ -469,6 +542,10 @@ public:
     objecttexture knightidles = objecttexture("textures/idles.png", 1);
 
     objecttexture cointex = objecttexture("textures/coins.png", 1);
+
+    objecttexture knightslide = objecttexture("textures/slide.png", 1);
+
+    objecttexture tilemaptex = objecttexture("textures/level0.png", 1);
 
 
     
@@ -499,11 +576,11 @@ public:
 
     void initialize()
     {
-        bg.intitialize(bgvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
-        bg.setmodel(0, glm::vec3(0.0f, -0.75f, 0.0f), glm::vec3(20.0f, 0.5f, 1.0f));
+        bg.intitialize(texmapvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f));
 
         knight.intitialize(spritevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
-        knight.setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
         knighttex = knightidles;
         knight.shader.setFloat("addy", 0.0f);
         
@@ -568,6 +645,7 @@ public:
         {
             coins[i].writedata("coin", &file, i);
         }
+        bg.writedata("bg", &file);
 
         file.close();
     }
@@ -587,6 +665,7 @@ public:
         {
           coins[i].readdata("coin", &file2, i);
         }
+        bg.readdata("bg",&file2);
 
         file2.close();
     
@@ -684,13 +763,15 @@ public:
         
         knightmovement.idles(window, &knight, &knighttex, knightidles);
 
+        knightmovement.slide(window, &knight, &knighttex, &knightslide);
+
         for (int i = 0; i < containerno; i++)
         {
             knightmovement.sidecollisionsolid(&knight, &container[i]);
         }
 
         for(int i =0;i<coinnumber;i++)
-        knightmovement.collectiblecollision(&knight, &coins[i]);
+        knightmovement.collectiblecollision(&knight, &coins[i],"audio/coin touch.wav");
 
         //coins
         float add = 0;
@@ -707,19 +788,22 @@ public:
 
     void draw()
     {
+
+        bg.drawquad(tilemaptex);
         
         knight.drawquad(knighttex);
 
-        for(int i=0;i<containerno;i++)
-        container[i].drawquad(containertex);
+        if (knightmovement.gamestart == 0)
+        {
+            for (int i = 0; i < containerno; i++)
+                container[i].drawquad(containertex);
+        }
 
         for (int i = 0; i < coinnumber; i++)
         {
             if (coins[i].contact == 0)
                 coins[i].drawquad(cointex);
         }
-        
-        bg.drawquad(bgtex);
 
     }
 
@@ -741,9 +825,15 @@ public:
 
     objectspace container[3];
 
-    int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
+    objectspace container1[4];
+
+    int containerno = 3;//when adding new containers do uncomment the game.getmatrix() function for one time
+
+    int containerno1 = 4;
 
     objectspace pointer;
+
+    objectspace pointer1;
 
     objecttexture bgtex = objecttexture("textures/grass.png", 1);
 
@@ -756,6 +846,10 @@ public:
     objecttexture exittex = objecttexture("textures/exit.png", 1); //container[2]
 
     objecttexture arrowtex = objecttexture("textures/arrow.png", 1); 
+
+    objecttexture resumetex = objecttexture("textures/resume.png", 1);
+
+    objecttexture restarttex = objecttexture("textures/restart.png", 1);
 
 
     //general
@@ -772,6 +866,8 @@ public:
     int pointerpos = 0;
     float pointertime = 0;
     float pointerspeed = 0.18f;
+
+    int menustate = 0; //0->start menu , 1->Resume menu
 
 
     void transform()
@@ -796,31 +892,63 @@ public:
         container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
+        container1[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[0].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
+        container1[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[1].setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+
+        container1[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
+        container1[3].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[3].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+
         pointer.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
         pointer.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
+
+        pointer1.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        pointer1.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
     }
 
     void mousetranslate(GLFWwindow* window)
     {
-
+        if (menustate == 0)
+        {
             for (int i = 0; i < containerno; i++)
             {
                 mousetranslatesprite(window, &container[i], &changecursor);
             }
             mousetranslatesprite(window, &pointer, &changecursor);
+        }
+        else if (menustate == 1)
+        {
+            for (int i = 0; i < containerno1; i++)
+            {
+                mousetranslatesprite(window, &container1[i], &changecursor);
+            }
+            mousetranslatesprite(window, &pointer1, &changecursor);
+        }
     }
 
     void mouseresize(GLFWwindow* window)
     {
-   
-        for (int i = 0; i < containerno; i++)
+        if (menustate == 0)
         {
-            mouseresizesprite(window, &container[i], &changecursor);
-
-
+            for (int i = 0; i < containerno; i++)
+            {
+                mouseresizesprite(window, &container[i], &changecursor);
+            }
+            mouseresizesprite(window, &pointer, &changecursor);
         }
-        mouseresizesprite(window, &pointer, &changecursor);
-        
+        else if (menustate == 1)
+        {
+            for (int i = 0; i < containerno1; i++)
+            {
+                mouseresizesprite(window, &container1[i], &changecursor);
+            }
+            mouseresizesprite(window, &pointer1, &changecursor);
+        }
     }
 
     void writematrix(const char* filename)
@@ -831,7 +959,14 @@ public:
         {
             container[i].writedata("cont", &file, i);
         }
+        for (int i = 0; i < containerno1; i++)
+        {
+            container1[i].writedata("contr", &file, i);
+        }
+
         pointer.writedata("pointer", &file);
+
+        pointer1.writedata("pointerr", &file);
 
         file.close();
     }
@@ -842,55 +977,116 @@ public:
 
         for (int i = 0; i < containerno; i++)
         {
-
             container[i].readdata("cont", &file2, i);
+        }
+        for (int i = 0; i < containerno1; i++)
+        {
+            container1[i].readdata("contr", &file2, i);
         }
         pointer.readdata("pointer", &file2);
 
-        file2.close();
+        pointer1.readdata("pointerr", &file2);
 
+        file2.close();
+        
     }
 
     void togglepointer(GLFWwindow* window)
     {
-        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && pointertime ==0)
+        if (menustate == 0)
         {
-            pointerpos++;
-            pointertime = pointerspeed;
-            if (pointerpos > containerno - 1) //2 bcoz last container is pointer itself
-                pointerpos = 0;
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && pointertime == 0)
+            {
+                pointerpos++;
+                pointertime = pointerspeed;
+                if (pointerpos > containerno - 1)
+                    pointerpos = 0;
+                soundengine->play2D("audio/solid.wav");
+            }
+            else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime == 0)
+            {
+                pointerpos--;
+                pointertime = pointerspeed;
+                if (pointerpos < 0)
+                    pointerpos = containerno - 1;
+                soundengine->play2D("audio/solid.wav");
+            }
+            pointertime -= deltatime;
+            if (pointertime < 0)
+                pointertime = 0;
+            pointer.setview(0, glm::vec3((container[pointerpos].center1.x - pointer.center1.x) - container[pointerpos].length1.x / 2 - 0.05f, (container[pointerpos].center1.y - pointer.center1.y), 0));
         }
-        else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime ==0)
+
+        else if (menustate == 1)
         {
-            pointerpos--;
-            pointertime = pointerspeed;
-            if (pointerpos < 0)
-                pointerpos = containerno - 1;
+            if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && pointertime == 0)
+            {
+                pointerpos++;
+                pointertime = pointerspeed;
+                if (pointerpos > containerno1 - 1)
+                    pointerpos = 0;
+                soundengine->play2D("audio/solid.wav");
+            }
+            else if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && pointertime == 0)
+            {
+                pointerpos--;
+                pointertime = pointerspeed;
+                if (pointerpos < 0)
+                    pointerpos = containerno1 - 1;
+                soundengine->play2D("audio/solid.wav");
+            }
+            pointertime -= deltatime;
+            if (pointertime < 0)
+                pointertime = 0;
+            pointer1.setview(0, glm::vec3((container1[pointerpos].center1.x - pointer1.center1.x) - container1[pointerpos].length1.x / 2 - 0.05f, (container1[pointerpos].center1.y - pointer1.center1.y), 0));
         }
-        pointer.setview(0, glm::vec3((container[pointerpos].center1.x - pointer.center1.x) -container[pointerpos].length1.x/2 -0.05f, (container[pointerpos].center1.y - pointer.center1.y), 0));
-        pointertime -= deltatime;
-        if (pointertime < 0)
-            pointertime = 0;
+
+
     }
 
     void pointerfunctions(GLFWwindow* window,int *currentclass)
     {
-        pointer.shader.setInt("texdirection", -1);
-        
-        if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-            *currentclass = 0;
-        
-        if (pointerpos == 2 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-            glfwSetWindowShouldClose(window,1);
+        if (menustate == 0)
+        {
+            pointer.shader.setInt("texdirection", -1);
+
+            if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                *currentclass = 0;
+
+            if (pointerpos == 2 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                glfwSetWindowShouldClose(window, 1);
+        }
+        if (menustate == 1)
+        {
+            pointer1.shader.setInt("texdirection", -1);
+
+            if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                *currentclass = 0;
+
+            if (pointerpos == 3 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                glfwSetWindowShouldClose(window, 1);
+        }
     }
 
     void draw()
     {
+        if (menustate == 0)
+        {
             container[0].drawquad(starttex);
+
             container[1].drawquad(optionstex);
             container[2].drawquad(exittex);
             pointer.drawquad(arrowtex);
+        }
+        else if (menustate == 1)
+        {
+            container1[0].drawquad(resumetex);
 
+            container1[1].drawquad(restarttex);
+            container1[2].drawquad(optionstex);
+            container1[3].drawquad(exittex);
+            pointer1.drawquad(arrowtex);
+        }
     }
 
     void deleteall()
@@ -917,6 +1113,7 @@ public:
         level0.getmatrix("Levels/level0.txt");
         menu.initialize();
         menu.getmatrix("Levels/menu.txt");
+        soundengine->play2D("audio/solid.wav"); //dummy audio for irrklang to get started
 
     }
 
@@ -929,8 +1126,10 @@ public:
             glClear(GL_COLOR_BUFFER_BIT);
             
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            {
                 currentclass = 1;
-
+                menu.menustate = 1;
+            }
             level0.framestart = glfwGetTime();
             level0.changecursor = 0;
 
