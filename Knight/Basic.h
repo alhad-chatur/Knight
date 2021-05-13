@@ -336,9 +336,10 @@ public:
 
         geek >> temptranslate.z;
 
+
         center1 += temptranslate;
         center = center1;
-        viewtranslatevec = temptranslate;
+        viewtranslatevec = glm::vec3(temptranslate);
 
         std::getline(*file, line);
         
@@ -351,6 +352,7 @@ public:
         geek >> tempscale.z;
 
         length1 *= tempscale;
+        length = length1;
         newmodelscale = tempscale;
     }
     

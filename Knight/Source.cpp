@@ -493,6 +493,57 @@ public:
     }
 };
 
+class Knight
+{
+public:
+    objectspace knight;
+    
+    Movement knightmovement;
+
+    objecttexture knighttex;
+
+    objecttexture knightattack = objecttexture("textures/attack.png", 1);
+
+    objecttexture knightjump = objecttexture("textures/jump.png", 1);
+
+    objecttexture knightidles = objecttexture("textures/idles.png", 1);
+
+    objecttexture knightslide = objecttexture("textures/slide.png", 1);
+
+    void initialize()
+    {
+        knight.intitialize(spritevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
+        knighttex = knightidles;
+        knight.shader.setFloat("addy", 0.0f);
+    }
+
+    void knightanimations(GLFWwindow *window)
+    {
+
+        knightmovement.jump(window, &knight, &knighttex, &knightjump);
+
+        knightmovement.fall(&knight);
+
+        knightmovement.attack(window, &knight, &knighttex, &knightattack);
+
+        knightmovement.idles(window, &knight, &knighttex, knightidles);
+
+        knightmovement.slide(window, &knight, &knighttex, &knightslide);
+    }
+    
+    void draw()
+    {
+        knight.drawquad(knighttex);
+    }
+    
+    void deinitialize()
+    {
+        knight.deinitialize();
+    }
+
+};
+
 class Level0
 {
 public:
@@ -516,10 +567,8 @@ public:
     };
     
     objectspace bg;
-
-    objectspace tilemap;
-
-    objectspace knight;
+    
+    objectspace bg2;
 
     objectspace container[3];
 
@@ -529,26 +578,15 @@ public:
 
     int coinnumber = 4;
 
-    objecttexture bgtex = objecttexture("textures/grass.png", 1);
-
-    objecttexture knighttex;
-
-    objecttexture knightattack = objecttexture("textures/attack.png", 1);
-
-    objecttexture knightjump = objecttexture("textures/jump.png", 1);
+    objecttexture bgtex = objecttexture("textures/bg.png", 1);
 
     objecttexture containertex = objecttexture("textures/container.jpg", 2);
 
-    objecttexture knightidles = objecttexture("textures/idles.png", 1);
-
     objecttexture cointex = objecttexture("textures/coins.png", 1);
-
-    objecttexture knightslide = objecttexture("textures/slide.png", 1);
 
     objecttexture tilemaptex = objecttexture("textures/level0.png", 1);
 
 
-    
     //related to background moving
     float slidebgspeed = 0.01f;
 
@@ -563,8 +601,7 @@ public:
     float spriteanimationspeed = 1.3f; 
    
 
-    Movement knightmovement;
-
+    Knight knightclass;
 
     void transform()
     {
@@ -577,37 +614,72 @@ public:
     void initialize()
     {
         bg.intitialize(texmapvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg.model = glm::mat4(1.0f);
         bg.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f));
 
-        knight.intitialize(spritevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
-        knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
-        knighttex = knightidles;
-        knight.shader.setFloat("addy", 0.0f);
-        
+        bg2.intitialize(texmapvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg2.model = glm::mat4(1.0f);
+        bg2.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f));
+
+        knightclass.initialize();
+
         container[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[0].model = glm::mat4(1.0f);
         container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
 
         container[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[1].model = glm::mat4(1.0f);
         container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
         container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[2].model = glm::mat4(1.0f);
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
        
         for (int i = 0; i < coinnumber; i++)
         {
             coins[i].intitialize(coinvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+            coins[i].model = glm::mat4(1.0f);
             coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
         }
         
 
     }
 
+    void restart()
+    {
+        bg.center1 = bg.center;
+        bg.length1 = bg.length;
+        bg.transform = glm::mat4(1.0f);
+
+        bg2.center1 = bg2.center;
+        bg2.length1 = bg2.length;
+        bg2.transform = glm::mat4(1.0f);
+
+        for (int i = 0; i < containerno; i++)
+        {
+            container[i].center1 = container[i].center;        
+            container[i].length1 = container[i].length;
+            container[i].transform = glm::mat4(1.0f);
+        }
+
+        for (int i = 0; i < coinnumber; i++)
+        {
+            coins[i].center1 = coins[i].center;
+            coins[i].length1 = coins[i].length;
+            coins[i].transform = glm::mat4(1.0f);
+            coins[i].contact = 0;
+        }
+
+        knightclass.knight.center1 = knightclass.knight.center;
+        knightclass.knight.length1 = knightclass.knight.length;
+        knightclass.knight.transform = glm::mat4(1.0f);
+
+    }
+
     void mousetranslate(GLFWwindow* window)
     {
-        mousetranslatesprite(window, &knight, &changecursor);
-
-        
+        mousetranslatesprite(window, &knightclass.knight, &changecursor);    
        
             for (int i = 0; i < containerno; i++)
             {
@@ -617,7 +689,6 @@ public:
             {
                 mousetranslatesprite(window, &coins[i], &changecursor);
             }
-
     }
 
     void mouseresize(GLFWwindow* window)
@@ -626,15 +697,19 @@ public:
         {
             mouseresizesprite(window, &container[i], &changecursor);
         }
+        for (int i = 0; i < coinnumber; i++)
+        {
+            mouseresizesprite(window, &coins[i], &changecursor);
+        }
 
-        mouseresizesprite(window, &knight, &changecursor);
+        mouseresizesprite(window, &knightclass.knight, &changecursor);
     }
 
     void writematrix(const char* filename)
     {
         std::ofstream file(filename);
 
-        knight.writedata("knight", &file);
+        knightclass.knight.writedata("knight", &file);
 
         for (int i = 0; i < containerno; i++)
         {
@@ -647,6 +722,8 @@ public:
         }
         bg.writedata("bg", &file);
 
+        bg2.writedata("bgb", &file);
+
         file.close();
     }
 
@@ -654,7 +731,7 @@ public:
     {
         std::ifstream file2(filename);
 
-        knight.readdata("knight", &file2);
+        knightclass.knight.readdata("knight", &file2);
 
         for (int i = 0; i < containerno; i++)
         {
@@ -666,19 +743,22 @@ public:
           coins[i].readdata("coin", &file2, i);
         }
         bg.readdata("bg",&file2);
+        bg2.readdata("bgb", &file2);
 
         file2.close();
-    
+        
     }
     
     void slidebackground(GLFWwindow* window)
     {
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
-            if (knightmovement.gamestart == 1)
+            if (knightclass.knightmovement.gamestart == 1)
             {
                 bg.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                knight.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                bg2.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+
+                knightclass.knight.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
 
                 for (int i = 0; i < containerno; i++)
                 {
@@ -694,7 +774,9 @@ public:
             {
 
                 bg.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
-                knight.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                bg2.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+
+                knightclass.knight.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 for (int i = 0; i < containerno; i++)
                 {
                     container[i].setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
@@ -709,10 +791,12 @@ public:
 
         if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
-            if (knightmovement.gamestart == 1)
+            if (knightclass.knightmovement.gamestart == 1)
             {
                 bg.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                knight.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                bg2.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+
+                knightclass.knight.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 for (int i = 0; i < containerno; i++)
                 {
                     container[i].settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
@@ -726,7 +810,9 @@ public:
             {
 
                 bg.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
-                knight.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                bg2.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+
+                knightclass.knight.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
                 for (int i = 0; i < containerno; i++)
                 {
                     container[i].setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
@@ -743,35 +829,28 @@ public:
 
     void processmovement(GLFWwindow* window)
     {
-        //knight
-        knightmovement.feedframedata(framenumber, deltatime);
+        //knight collisions
+        knightclass.knightmovement.feedframedata(framenumber, deltatime);
 
         for (int i = 0; i < containerno; i++)
         {
-            knightmovement.topcollisionsolid(&knight, &container[i]);
+            knightclass.knightmovement.topcollisionsolid(&knightclass.knight, &container[i]);
         }
         for (int i = 0; i < containerno; i++)
         {
-            knightmovement.bottomcollisionsolid(&knight, &container[i]);
+            knightclass.knightmovement.bottomcollisionsolid(&knightclass.knight, &container[i]);
         }
-
-        knightmovement.jump(window, &knight, &knighttex, &knightjump);
-
-        knightmovement.fall(&knight);
-
-        knightmovement.attack(window, &knight, &knighttex, &knightattack);
-        
-        knightmovement.idles(window, &knight, &knighttex, knightidles);
-
-        knightmovement.slide(window, &knight, &knighttex, &knightslide);
+        knightclass.knightanimations(window);
 
         for (int i = 0; i < containerno; i++)
         {
-            knightmovement.sidecollisionsolid(&knight, &container[i]);
+            knightclass.knightmovement.sidecollisionsolid(&knightclass.knight, &container[i]);
         }
 
         for(int i =0;i<coinnumber;i++)
-        knightmovement.collectiblecollision(&knight, &coins[i],"audio/coin touch.wav");
+        knightclass.knightmovement.collectiblecollision(&knightclass.knight, &coins[i],"audio/coin touch.wav");
+
+        
 
         //coins
         float add = 0;
@@ -789,11 +868,13 @@ public:
     void draw()
     {
 
+        bg2.drawquad(bgtex);
+        
         bg.drawquad(tilemaptex);
         
-        knight.drawquad(knighttex);
+        knightclass.draw();
 
-        if (knightmovement.gamestart == 0)
+        if (knightclass.knightmovement.gamestart == 0)
         {
             for (int i = 0; i < containerno; i++)
                 container[i].drawquad(containertex);
@@ -810,7 +891,7 @@ public:
     void deleteall()
     {
         bg.deinitialize();
-        knight.deinitialize();
+        knightclass.deinitialize();
         
         for(int i=0;i<containerno;i++)
         container[i].deinitialize();
@@ -868,7 +949,6 @@ public:
     float pointerspeed = 0.18f;
 
     int menustate = 0; //0->start menu , 1->Resume menu
-
 
     void transform()
     {
@@ -1044,7 +1124,7 @@ public:
 
     }
 
-    void pointerfunctions(GLFWwindow* window,int *currentclass)
+    void pointerfunctions(GLFWwindow* window,int *currentclass,int *restart)
     {
         if (menustate == 0)
         {
@@ -1062,6 +1142,9 @@ public:
 
             if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
                 *currentclass = 0;
+
+            if (pointerpos == 1 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+                *restart = 1;
 
             if (pointerpos == 3 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
                 glfwSetWindowShouldClose(window, 1);
@@ -1106,6 +1189,7 @@ public:
     Menu menu; //1
 
     int currentclass = 1;
+    int restart = 0;
 
     void preset()
     {
@@ -1113,6 +1197,7 @@ public:
         level0.getmatrix("Levels/level0.txt");
         menu.initialize();
         menu.getmatrix("Levels/menu.txt");
+        level0.knightclass.knightmovement.gamestart == 0;
         soundengine->play2D("audio/solid.wav"); //dummy audio for irrklang to get started
 
     }
@@ -1133,11 +1218,16 @@ public:
             level0.framestart = glfwGetTime();
             level0.changecursor = 0;
 
-            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightmovement.gamestart == 0)
-                //Change Position Mode only before moving any character
+            if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
+            {
+                level0.mousetranslate(window);
+
+                if (level0.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
+            else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
             {
                 level0.mouseresize(window);
-                level0.mousetranslate(window);
 
                 if (level0.changecursor == 0)
                     glfwSetCursor(window, NULL);
@@ -1161,18 +1251,35 @@ public:
             
             if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
             {
-                menu.mouseresize(window);
                 menu.mousetranslate(window);
 
                 if (menu.changecursor == 0)
                    glfwSetCursor(window, NULL);
             }
+            else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+            {
+                menu.mouseresize(window);  
+
+                if (menu.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
             else //normal mode
             {
                 menu.transform();
                 menu.togglepointer(window);
-                menu.pointerfunctions(window,&currentclass);
+                menu.pointerfunctions(window,&currentclass,&restart);
+                
                 glfwSetCursor(window, NULL);
+            }
+
+            if (restart == 1)
+            {
+                restart = 0;
+                menu.menustate = 0;
+                level0.restart();
+                
+                soundengine->play2D("audio/solid.wav"); //dummy audio for irrklang to get started
+
             }
 
         }
@@ -1212,7 +1319,6 @@ public:
       menu.writematrix("Levels/menu.txt");
     }
 
-
 };
 
 int main()
@@ -1222,7 +1328,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", glfwGetPrimaryMonitor() , NULL);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
