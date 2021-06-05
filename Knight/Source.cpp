@@ -32,8 +32,8 @@ float bgvertices[100] = {
 };
 float spritevertices[100] = {
     // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   0.1f, 1.0f, // top right
-     0.5f, -0.5f, 0.0f,    0.1f, 0.0f, // bottom right
+     0.5f,  0.5f, 0.0f,    1.0f, 1.0f, // top right
+     0.5f, -0.5f, 0.0f,    1.0f, 0.0f, // bottom right
     -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
     -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
 };
@@ -66,8 +66,23 @@ public:
 
     //related to attack
     int attacking = 0;
-    double attacktime = 0;
     unsigned int attackframeno = 0;
+    int attnumber = 0;
+    int attnumber1 =0;
+    float attlengthx = 0;
+    float attlengthy = 0;
+    int attackx[12]
+    {
+        435,389,363,352,353,413,467,468,470,494,464,435
+    };
+    int attacky[12]
+    {
+        615,617,616,614,614,616,600,597,594,607,615,615
+    };
+    float attanispeed = 1.5f;
+    int attsprites = 12;
+    float attsumx = 0;
+    float attsumy = 0;
 
     //related to walking
     int walking = 0;
@@ -84,16 +99,30 @@ public:
     //related to frames
     int FPS = 120;
     int framenumber = 1;
-    float add;
+    float add = 0;
+    float add1=0;
+    float addy = 0;
     double framestart, frameend, deltatime = 0;
-
-    //related to idling
-    int idling = 0;
 
     //related to sliding
     int sliding = 0;
-    double slidetime = 0;
     unsigned int slideframeno = 0;
+    float slidex[12] =
+    {
+        438,435,504,589,657,657,657,657,657,654,501,438
+    };
+    float slidey[12] =
+    {
+        610,624,605,521,447,447,447,447,447,472,582,610
+    };
+    int slidenumber = 0 , slidenumber1 = 0;
+    float slidelengthx = 0;
+    float slidelengthy = 0;
+    float slideanispeed = 1.25f;
+    int slidesprites = 12;
+    float slidesumy = 0;
+    float slidesumx = 0;
+    float slidespeed = 3.0f;
 
     int gamestart = 0;
     int playerdirectionx = 1;
@@ -105,57 +134,49 @@ public:
         deltatime = deltatime1;
     }
 
-    bool idles(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidles)
+    void idle(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidle)
     {
 
-        if (jumptime == 0 && attacktime == 0 &&slidetime ==0)
+        if (jumptime == 0 && attacking ==0 &&sliding ==0)
         {
-            if (idling == 0)
-                *knighttex = knightidles;
 
+            if (walking == 0 && running == 0)
+            {
+                knight->shader.use();
+                *knighttex = knightidle;
+                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+                
+                if (playerdirectionx == -1)
+                    add = 1 - add;
 
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", 0.0f);
+
+                knight->shader.setFloat("add", 0.1f);
+                knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setInt("texdirection", playerdirectionx);
+            }
+        }
+
+    }
+
+    void run(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightrun, int runkeyright = NULL,int runkeyleft = NULL, int walkkey2 = NULL)
+    {
+        if (jumptime == 0 && attacking == 0 && sliding == 0)
+        {
+            if (glfwGetKey(window, runkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
             {
                 gamestart = 1;
-                idling = 1;
                 knight->shader.use();
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+
+                *knighttex = knightrun;
+
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
 
                 knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -0.0f);
-                knight->shader.setInt("texdirection", 1);
-                knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
-
-                walking = 1;
-                playerdirectionx = 1;
-
-            }
-            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-            {
-                gamestart = 1;
-                idling = 1;
-                knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-
-                knight->shader.setFloat("add", -add);
-                knight->shader.setFloat("addy", -0.0f);
-                knight->shader.setInt("texdirection", -1);
-                knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
-
-                walking = 1;
-                playerdirectionx = -1;
-            }
-            else
-                walking = 0;
-
-            if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
-            {
-                gamestart = 1;
-                idling = 1;
-                knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -2.0f);
+                knight->shader.setFloat("addy", 0.0f);
                 knight->shader.setInt("texdirection", 1);
                 knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
                 running = 1;
@@ -164,15 +185,24 @@ public:
 
 
             }
-            else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_RELEASE)
+            else if (glfwGetKey(window, runkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
             {
                 gamestart = 1;
-                idling = 1;
+                
                 knight->shader.use();
+
+                *knighttex = knightrun;
+
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-                knight->shader.setFloat("add", -add);
+
+                add = 1 - add;
+
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
+
+                knight->shader.setFloat("add", add);
                 knight->shader.setInt("texdirection", -1);
-                knight->shader.setFloat("addy", -2.0f);
+                knight->shader.setFloat("addy", 0.0f);
                 knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
                 running = 1;
                 playerdirectionx = -1;
@@ -181,28 +211,65 @@ public:
             else
                 running = 0;
 
-
-            if (walking == 0 && running == 0)
-            {
-                idling = 1;
-                knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -1.0f);
-                knight->shader.setInt("texdirection", playerdirectionx);
-            }
-            else
-                return 0;
         }
-
     }
 
-    void jump(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightjump)
+    void walk(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightwalk, int walkkeyright = NULL,int walkkeyleft = NULL, int walkkey2 = NULL)
     {
-        if (((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && jumping == 0) || jumping != 0) && falling == 0)
+        if (jumptime == 0 && attacking == 0 && sliding == 0)
+        {
+            if (glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+            {
+                gamestart = 1;
+                knight->shader.use();
+                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
+
+                knight->shader.setFloat("add", add);
+                knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setInt("texdirection", 1);
+                knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
+
+                walking = 1;
+                playerdirectionx = 1;
+
+                *knighttex = knightwalk;
+            }
+            else if (glfwGetKey(window,walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+            {
+                gamestart = 1;
+                
+                knight->shader.use();
+                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+
+                add = 1 - add;
+
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
+
+                knight->shader.setFloat("add", add);
+                knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setInt("texdirection", -1);
+                knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
+
+                walking = 1;
+                playerdirectionx = -1;
+                *knighttex = knightwalk;
+            }
+            else
+                walking = 0;
+        }
+    }
+
+    void jump(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightjump,int jumpkey = NULL)
+    {
+
+        if (((glfwGetKey(window, jumpkey) == GLFW_PRESS && jumping == 0) || jumping != 0) && falling == 0 &&sliding ==0)
         {
             gamestart = 1;
-            idling = 0;
+            
             if (jumping == 0)
             {
                 jumpframeno = 0;
@@ -225,9 +292,12 @@ public:
                 jumping = 1;
                 knight->shader.use();
                 add = 0.1f;
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
+
 
                 knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -10.0f);
+                knight->shader.setFloat("addy", 0.0f);
                 knight->shader.setInt("texdirection", 1);
 
                 knight->settranform(0, glm::vec3(jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
@@ -238,8 +308,11 @@ public:
                 jumping = 2;
                 knight->shader.use();
                 add = 0.1f;
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
+
                 knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -10.0f);
+                knight->shader.setFloat("addy", 0.0f);
                 knight->shader.setInt("texdirection", -1);
 
                 knight->settranform(0, glm::vec3(-jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
@@ -251,8 +324,10 @@ public:
                 jumping = 3;
                 knight->shader.use();
                 add = 0.5f;
+                add1 = add - 0.1f;
+                knight->shader.setFloat("add1", add1);
                 knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", -10.0f);
+                knight->shader.setFloat("addy", 0.0f);
 
                 knight->settranform(0, glm::vec3(0.0f, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
@@ -273,88 +348,172 @@ public:
 
     }
 
-    void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack)
+    void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack,int attackkey = NULL)
     {
-        if (((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1)
+        
+        if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1)
         {
-            idling = 0;
+            
             if (attacking == 0)
             {
-                attacktime = 0;
                 attackframeno = 0;
+                attsumx = 0;
+                attsumy = 0;
             }
             attackframeno++;
-            attacktime += deltatime;
 
             attacking = 1;
             *knighttex = *knightattack;
             knight->shader.use();
-            add = (1 / knight->nsprites) * (int)((attackframeno * knight->speed * knight->nsprites) / FPS);
-            if (playerdirectionx == -1)
-                add = 1 - add;
+            attnumber1 = attnumber;
+            attnumber = (int)((attackframeno *attanispeed * knight->nsprites) / FPS);
+            
+            
+            add = 0;
+            add1 = 0;
+            for (int i = 0; i <= attnumber; i++)
+            {
+                add = add + ((double)attackx[i] / (double)knightattack->width);
+            };
+            for (int i = 0; i < attnumber; i++)
+            {
+                add1 = add1 + ((double)attackx[i] / (double)knightattack->width);
+            };
+            addy = 1 - ((double)attacky[attnumber] / (double)knightattack->height);
 
-            knight->shader.setFloat("add", add);
-            knight->shader.setFloat("addy", -10.0f);
-            knight->shader.setInt("texdirection", playerdirectionx);
 
-            if (attacktime >= 0.72f)
+            if (attnumber == attsprites)
             {
                 attacking = 0;
-                attacktime = 0;
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)attackx[0] / (double)attackx[attsprites - 1], (double)attacky[0] / (double)attacky[attsprites - 1], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -attsumy / 2, 0.0f));
+
+              
+                if (playerdirectionx == 1)
+                    knight->settranform(0, glm::vec3(-attsumx / 2, 0.0f, 0.0f));
+
+                else
+                    knight->settranform(0, glm::vec3(attsumx / 2, 0.0f, 0.0f));
+  
+                attnumber =0;
+                attnumber1 = 0;
             }
+
+            if (attnumber1 != attnumber)
+            {             
+                attlengthx = knight->length1.x;
+                attlengthy = knight->length1.y;
+                knight->changemodel(0,glm::vec3(0.0f), glm::vec3((double)attackx[attnumber] / (double)attackx[attnumber-1], (double)attacky[attnumber] / (double)attacky[attnumber - 1], 1.0f));
+
+                if(playerdirectionx ==1)
+                knight->settranform(0, glm::vec3((knight->length1.x - attlengthx) / 2, (knight->length1.y - attlengthy) / 2, 0.0f));
+
+                else if(playerdirectionx ==-1)
+                    knight->settranform(0, glm::vec3(-(knight->length1.x - attlengthx) / 2, (knight->length1.y - attlengthy) / 2, 0.0f));
+
+                attsumx += knight->length1.x - attlengthx;
+                attsumy += knight->length1.y - attlengthy;
+            }
+
+            if (playerdirectionx == -1)
+            {
+                add = add + add1;     //a little swap between add and add1
+                add1 = add - add1;
+                add = add - add1;      
+            }
+            knight->shader.setFloat("add", add);
+            knight->shader.setFloat("add1", add1);
+            knight->shader.setFloat("addy", addy);
+            knight->shader.setInt("texdirection", 1); //sending texdirection =1 here because we already swaped add and add1
+
         }
 
     }
 
-    void slide(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightslide)
+    void slide(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightslide,int slidekey = NULL)
     {
-        if (((glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1)
+        
+        if (((glfwGetKey(window,slidekey) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1 && jumping ==0)
         {
-            idling = 0;
+            
             if (sliding == 0)
             {
-                slidetime = 0;
                 slideframeno = 0;
-                
-                
-               knight->changemodel(0, glm::vec3(0), glm::vec3(1.3f, 0.8f, 1.0f));
-              /* if (playerdirectionx == 1)
-                    knight->settranform(0, glm::vec3(0.25 * knight->length1.x / 2, -0.2 * knight->length1.y / 2, 0.0f));
-                else if (playerdirectionx == -1)
-                    knight->settranform(0, glm::vec3(-0.25 * knight->length1.x / 2, -0.2 * knight->length1.y / 2, 0.0f));
-                */    
+                slidesumy = 0;
+                slidesumx = 0;
             }
             slideframeno++;
-            slidetime += deltatime;
-
-            sliding = 1;
-            *knighttex = *knightslide;
             knight->shader.use();
-            add = (1 / knight->nsprites) * (int)((slideframeno *knight->speed* knight->nsprites) / FPS);
-            if (playerdirectionx == -1)
-                add = 1 - add;
+            sliding = 1;
+            *knighttex =knightslide;
 
-           
+            slidenumber1 = slidenumber;
+            slidenumber = (int)((slideframeno *slideanispeed * knight->nsprites) / FPS);
 
-            knight->shader.setFloat("add", add);
-            knight->shader.setFloat("addy", -10.0f);
-            knight->shader.setInt("texdirection", playerdirectionx);
+            knight->settranform(0, glm::vec3(playerdirectionx * slidespeed * 0.001f, 0.0f, 0.0f));
 
-            if (slidetime >= 0.8)
+            add = 0;
+            add1 = 0;
+            for (int i = 0; i <= slidenumber; i++)
+            {
+                add = add + ((double)slidex[i] / (double)knightslide.width);
+            };
+            for (int i = 0; i < slidenumber; i++)
+            {
+                add1 = add1 + ((double)slidex[i] / (double)knightslide.width);
+            };
+            addy = 1-((double)slidey[slidenumber] / (double)knightslide.height);
+            
+
+            if (slidenumber == slidesprites)
             {
                 sliding = 0;
-                slidetime = 0;
                 slideframeno = 0;
+
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[0] / (double)slidex[slidesprites-1], (double)slidey[0] / (double)slidey[slidesprites - 1], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -slidesumy/2, 0.0f));
                 
-                /*if (playerdirectionx == 1)
-                    knight->settranform(0, glm::vec3(-0.125* knight->length1.x / 2, 0.2 * knight->length1.y / 2, 0.0f));
-                else if (playerdirectionx == -1)
-                    knight->settranform(0, glm::vec3(0.125 * knight->length1.x / 2, 0.2 * knight->length1.y / 2, 0.0f));
-                  */  
-                knight->changemodel(0, glm::vec3(0), glm::vec3(0.769f,1.25f, 1.0f));
-                
+                if (playerdirectionx == 1)
+                    knight->settranform(0, glm::vec3(-slidesumx / 2, 0.0f, 0.0f));
+
+                else
+                    knight->settranform(0, glm::vec3(slidesumx / 2, 0.0f, 0.0f));
+
+                slidenumber = 0;
+                slidenumber1 = 0;
             }
 
+            if ((slidenumber1 != slidenumber) && sliding ==1)
+            {
+                slidelengthx = knight->length1.x;
+                slidelengthy = knight->length1.y;
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[slidenumber] / (double)slidex[slidenumber - 1], (double)slidey[slidenumber] / (double)slidey[slidenumber - 1], 1.0f));
+
+                if (playerdirectionx == 1)
+                    knight->settranform(0, glm::vec3((knight->length1.x - slidelengthx) / 2, (knight->length1.y - slidelengthy) / 2, 0.0f));
+
+                else if (playerdirectionx == -1)
+                    knight->settranform(0, glm::vec3(-(knight->length1.x - slidelengthx) / 2, (knight->length1.y - slidelengthy) / 2, 0.0f));
+
+                slidesumy += knight->length1.y - slidelengthy;
+                slidesumx += knight->length1.x - slidelengthx;
+
+            }
+
+            if (playerdirectionx == -1)
+            {
+                add = add + add1;     //a little swap between add and add1
+                add1 = add - add1;
+                add = add - add1;
+            }
+
+            
+           
+            knight->shader.setFloat("add1", add1);    
+
+            knight->shader.setFloat("add", add);
+            knight->shader.setFloat("addy", addy);
+            knight->shader.setInt("texdirection", 1);
 
         }
     };
@@ -502,34 +661,46 @@ public:
 
     objecttexture knighttex;
 
-    objecttexture knightattack = objecttexture("textures/attack.png", 1);
+    objecttexture knightattack = objecttexture("textures/attack1.png", 1);
 
     objecttexture knightjump = objecttexture("textures/jump.png", 1);
 
-    objecttexture knightidles = objecttexture("textures/idles.png", 1);
+    objecttexture knightidle = objecttexture("textures/idle.png", 1);
 
     objecttexture knightslide = objecttexture("textures/slide.png", 1);
 
+    objecttexture knightrun = objecttexture("textures/run.png", 1);
+
+    objecttexture knightwalk = objecttexture("textures/walk.png", 1);
+
     void initialize()
     {
-        knight.intitialize(spritevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        knight.intitialize(spritevertices, indices, "attacksprite.vs", "attacksprite.fs");
         knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
-        knighttex = knightidles;
+        knighttex = knightidle;
         knight.shader.setFloat("addy", 0.0f);
     }
 
     void knightanimations(GLFWwindow *window)
     {
 
-        knightmovement.jump(window, &knight, &knighttex, &knightjump);
+        knightmovement.jump(window, &knight, &knighttex, &knightjump,GLFW_KEY_SPACE);
 
         knightmovement.fall(&knight);
 
-        knightmovement.attack(window, &knight, &knighttex, &knightattack);
+        knightmovement.attack(window, &knight, &knighttex, &knightattack,GLFW_MOUSE_BUTTON_LEFT);
 
-        knightmovement.idles(window, &knight, &knighttex, knightidles);
+        knightmovement.walk(window, &knight, &knighttex, knightwalk,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_LEFT_CONTROL);
 
-        knightmovement.slide(window, &knight, &knighttex, &knightslide);
+        knightmovement.run(window, &knight, &knighttex, knightrun,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_LEFT_CONTROL);
+
+        knightmovement.slide(window, &knight, &knighttex, knightslide,GLFW_KEY_LEFT_SHIFT);
+
+        knightmovement.idle(window, &knight, &knighttex, knightidle); //always put this in last
+
+        std::cout << knight.center1.x << "\n";
+
+
     }
     
     void draw()
@@ -556,6 +727,14 @@ public:
         -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
         -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
     };
+    float slimevertices[100] =
+    {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   0.04, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,    0.04, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
+    };
 
     float texmapvertices[100]
     {
@@ -578,6 +757,8 @@ public:
 
     int coinnumber = 4;
 
+    objectspace slime;
+
     objecttexture bgtex = objecttexture("textures/bg.png", 1);
 
     objecttexture containertex = objecttexture("textures/container.jpg", 2);
@@ -585,6 +766,12 @@ public:
     objecttexture cointex = objecttexture("textures/coins.png", 1);
 
     objecttexture tilemaptex = objecttexture("textures/level0.png", 1);
+
+    objecttexture slimeidle = objecttexture("textures/slimeidle.png", 1);
+
+    objecttexture slimehurt = objecttexture("textures/slimehurt.png", 1);
+
+    objecttexture slimedie = objecttexture("textures/slimedie.png", 1);
 
 
     //related to background moving
@@ -641,8 +828,11 @@ public:
             coins[i].intitialize(coinvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
             coins[i].model = glm::mat4(1.0f);
             coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
+       
         }
-        
+        slime.intitialize(slimevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        slime.model = glm::mat4(1.0f);
+        slime.setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));   
 
     }
 
@@ -675,6 +865,10 @@ public:
         knightclass.knight.length1 = knightclass.knight.length;
         knightclass.knight.transform = glm::mat4(1.0f);
 
+       slime.center1 = slime.center;
+        slime.length1 = slime.length;
+        slime.transform = glm::mat4(1.0f);
+
     }
 
     void mousetranslate(GLFWwindow* window)
@@ -689,6 +883,7 @@ public:
             {
                 mousetranslatesprite(window, &coins[i], &changecursor);
             }
+            mousetranslatesprite(window, &slime, &changecursor);
     }
 
     void mouseresize(GLFWwindow* window)
@@ -701,8 +896,9 @@ public:
         {
             mouseresizesprite(window, &coins[i], &changecursor);
         }
-
+        mouseresizesprite(window, &slime, &changecursor);
         mouseresizesprite(window, &knightclass.knight, &changecursor);
+       
     }
 
     void writematrix(const char* filename)
@@ -723,6 +919,8 @@ public:
         bg.writedata("bg", &file);
 
         bg2.writedata("bgb", &file);
+
+        slime.writedata("slime", &file);
 
         file.close();
     }
@@ -745,11 +943,13 @@ public:
         bg.readdata("bg",&file2);
         bg2.readdata("bgb", &file2);
 
+        slime.readdata("slime", &file2);
+
         file2.close();
         
     }
     
-    void slidebackground(GLFWwindow* window)
+    void slidebackground(GLFWwindow* window)    
     {
         if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
         {
@@ -768,6 +968,8 @@ public:
                 {
                   coins[i].settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
                 }
+                slime.settranform(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+
 
             }
             else
@@ -784,7 +986,9 @@ public:
                 for (int i = 0; i < coinnumber; i++)
                 {
                     coins[i].setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
+                
                 }
+                slime.setview(0, glm::vec3(-slidebgspeed, 0.0f, 0.0f));
 
             }
         }
@@ -804,7 +1008,10 @@ public:
                 for (int i = 0; i < coinnumber; i++)
                 {
                     coins[i].settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                
                 }
+                slime.settranform(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+
             }
             else
             {
@@ -820,7 +1027,10 @@ public:
                 for (int i = 0; i < coinnumber; i++)
                 {
                     coins[i].setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+                
                 }
+                slime.setview(0, glm::vec3(slidebgspeed, 0.0f, 0.0f));
+
 
             }
         }
@@ -850,8 +1060,6 @@ public:
         for(int i =0;i<coinnumber;i++)
         knightclass.knightmovement.collectiblecollision(&knightclass.knight, &coins[i],"audio/coin touch.wav");
 
-        
-
         //coins
         float add = 0;
         for (int i = 0; i < coinnumber; i++)
@@ -861,7 +1069,14 @@ public:
             add = (1 / coins[i].nsprites) * (int)((framenumber *2.3 * coins[i].nsprites) / FPS);
             coins[i].shader.use();
             coins[i].shader.setFloat("add", add);
+
         }
+        slime.nsprites = 25;
+
+        add = (1 / slime.nsprites) * (int)((framenumber * 1.5 * slime.nsprites) / FPS);
+        slime.shader.use();
+        slime.shader.setFloat("add", add);
+
 
     }
 
@@ -885,6 +1100,7 @@ public:
             if (coins[i].contact == 0)
                 coins[i].drawquad(cointex);
         }
+        slime.drawquad(slimeidle);
 
     }
 
@@ -1225,7 +1441,7 @@ public:
                 if (level0.changecursor == 0)
                     glfwSetCursor(window, NULL);
             }
-            else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
+            else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
             {
                 level0.mouseresize(window);
 
@@ -1247,7 +1463,9 @@ public:
             glClear(GL_COLOR_BUFFER_BIT);
             
             menu.framestart = glfwGetTime();
+            level0.framestart = glfwGetTime();
             menu.changecursor = 0;
+
             
             if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
             {
@@ -1256,7 +1474,7 @@ public:
                 if (menu.changecursor == 0)
                    glfwSetCursor(window, NULL);
             }
-            else if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+            else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
             {
                 menu.mouseresize(window);  
 
@@ -1310,6 +1528,10 @@ public:
         {
             menu.frameend = glfwGetTime();
             menu.deltatime = menu.frameend - menu.framestart;
+  
+            level0.frameend = glfwGetTime();
+            level0.deltatime = level0.frameend - level0.framestart;
+        
         }
     }
 
@@ -1328,7 +1550,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", glfwGetPrimaryMonitor() , NULL);
+    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", NULL , NULL);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

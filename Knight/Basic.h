@@ -188,9 +188,9 @@ public:
     void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
         model = glm::translate(model, translate);
-        newmodelscale= glm::vec4(scale, 1.0f) * newmodelscale;
+        newmodelscale= glm::vec4(scale, 1.0f)*newmodelscale;
 
-        length1 = newmodelscale * length;
+        length1 = length *newmodelscale;
 
         model = glm::rotate(model, glm::radians(rotateangle), rotateaxis);
         if (scalefactor == 0)
@@ -352,7 +352,7 @@ public:
         geek >> tempscale.z;
 
         length1 *= tempscale;
-        length = length1;
+        //length = length1;
         newmodelscale = tempscale;
     }
     
