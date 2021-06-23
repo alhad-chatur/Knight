@@ -43,7 +43,6 @@ int scrheight = 1080;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
 
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 
@@ -52,7 +51,147 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
  
 class Movement
 {
+private:
+    void dynamicspritespaceloop(objectspace* knight, int* number1, int* number, unsigned int* frameno, float anispeed, float FPS, float* sumx, float* sumy, int playerdirectionx, int width, int height, float spritex[], float spritey[], int* activity, int spritenumber)
+    {
+        *number1 = *number;
+        *number = (int)(((*frameno) * anispeed * (knight->nsprites)) / FPS);
+
+        float add = 0;
+        float add1 = 0;
+        for (int i = 0; i <= *number; i++)
+        {
+            add = add + ((double)spritex[i] / (double)width);
+        };
+        for (int i = 0; i < *number; i++)
+        {
+            add1 = add1 + ((double)spritex[i] / (double)width);
+        };
+        float addy = 1 - ((double)spritey[*number] / (double)height);
+
+
+        if (*number == spritenumber)
+        {
+            *activity = 0;
+            *frameno = 0;
+
+            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)spritex[0] / (double)spritex[spritenumber - 1], (double)spritey[0] / (double)spritey[spritenumber - 1], 1.0f));
+            knight->settranform(0, glm::vec3(0.0f, -*sumy / 2, 0.0f));
+
+            if (playerdirectionx == 1)
+                knight->settranform(0, glm::vec3(-*sumx / 2, 0.0f, 0.0f));
+
+            else
+                knight->settranform(0, glm::vec3(*sumx / 2, 0.0f, 0.0f));
+
+            *number = 0;
+            *number1 = 0;
+        }
+
+        if ((*number1 != *number) && *activity == 1)
+        {
+            float length1x = knight->length1.x;
+            float length1y = knight->length1.y;
+            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)spritex[*number] / (double)spritex[*number - 1], (double)spritey[*number] / (double)spritey[*number - 1], 1.0f));
+
+            if (playerdirectionx == 1)
+                knight->settranform(0, glm::vec3((knight->length1.x - length1x) / 2, (knight->length1.y - length1y) / 2, 0.0f));
+
+            else if (playerdirectionx == -1)
+                knight->settranform(0, glm::vec3(-(knight->length1.x - length1x) / 2, (knight->length1.y - length1y) / 2, 0.0f));
+
+            *sumy += knight->length1.y - length1y;
+            *sumx += knight->length1.x - length1x;
+
+        }
+
+        if (playerdirectionx == -1)
+        {
+            add = add + add1;     //a little swap between add and add1
+            add1 = add - add1;
+            add = add - add1;
+        }
+
+        knight->shader.use();
+
+        knight->shader.setFloat("add1", add1);
+
+        knight->shader.setFloat("add", add);
+        knight->shader.setFloat("addy", addy);
+        knight->shader.setInt("texdirection", 1);
+
+    }
+
+    void dynamicspritespacecont(objectspace* knight, int* number1, int* number, unsigned int* framenumber, float anispeed, float FPS, float* sumx, float* sumy, int playerdirectionx, int width, int height, float spritex[], float spritey[], int activity, int spritenumber)
+    {
+        *number1 = *number;
+        *number = (int)(((*framenumber) * anispeed * (knight->nsprites)) / FPS);
+
+        if (*number == spritenumber)
+        {
+            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)spritex[0] / (double)spritex[*number - 1], (double)spritey[0] / (double)spritey[*number - 1], 1.0f));
+            knight->settranform(0, glm::vec3(0.0f, -*sumy / 2, 0.0f));
+
+            if (activity == 1)
+                knight->settranform(0, glm::vec3(-*sumx / 2, 0.0f, 0.0f));
+
+            else if (activity == -1)
+                knight->settranform(0, glm::vec3(*sumx / 2, 0.0f, 0.0f));
+
+
+            *framenumber = 0;
+            *number = 0;
+            *number1 = 0;
+            *sumx = 0;
+            *sumy = 0;
+        }
+        float add = 0;
+        float add1 = 0;
+        for (int i = 0; i <= *number; i++)
+        {
+            add = add + ((double)spritex[i] / (double)width);
+        };
+        for (int i = 0; i < *number; i++)
+        {
+            add1 = add1 + ((double)spritex[i] / (double)width);
+        };
+        float addy = 1 - ((double)spritey[*number] / (double)height);
+
+        if (*number1 != *number)
+        {
+            float length1x = knight->length1.x;
+            float length1y = knight->length1.y;
+            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)spritex[*number] / (double)spritex[*number - 1], (double)spritey[*number] / (double)spritey[*number - 1], 1.0f));
+
+            if (activity == 1)
+                knight->settranform(0, glm::vec3((knight->length1.x - length1x) / 2, (knight->length1.y - length1y) / 2, 0.0f));
+
+            else if (activity == -1)
+                knight->settranform(0, glm::vec3(-(knight->length1.x - length1x) / 2, (knight->length1.y - length1y) / 2, 0.0f));
+
+            *sumy += knight->length1.y - length1y;
+            *sumx += knight->length1.x - length1x;
+        }
+
+        if (activity == -1)
+        {
+            add = add + add1;
+            add1 = add - add1;
+            add = add - add1;
+        }
+
+        knight->shader.setFloat("add1", add1);
+
+        knight->shader.setFloat("add", add);
+        knight->shader.setFloat("addy", addy);
+        knight->shader.setInt("texdirection", 1);
+
+    }
+
 public:
+    int idlewidth = 438;
+    int idleheight = 610;
+
 
     //related to jumping
     int jumpframeno = 0;
@@ -69,28 +208,57 @@ public:
     unsigned int attackframeno = 0;
     int attnumber = 0;
     int attnumber1 =0;
-    float attlengthx = 0;
-    float attlengthy = 0;
-    int attackx[12]
+    float attackx[12]
     {
         435,389,363,352,353,413,467,468,470,494,464,435
     };
-    int attacky[12]
+    float attacky[12]
     {
         615,617,616,614,614,616,600,597,594,607,615,615
     };
-    float attanispeed = 1.5f;
-    int attsprites = 12;
+    float attanispeed = 1.7f;
+    int attspritesno = 12;
     float attsumx = 0;
     float attsumy = 0;
 
     //related to walking
     int walking = 0;
     float walkspeed = 0.25f;
+    float walkx[10]
+    {
+      407,398,388,393,393,399,398,402,405,407
+    };
+    float walky[10]
+    {
+        633,657,660,638,640,632,652,650,635,637
+    };
+    int walknumber = 0;
+    int walknumber1 = 0;
+    float walkanispeed = 1.5f;
+    int walkspritesno = 10;
+    float walksumx = 0;
+    float walksumy = 0;
+    unsigned int walkframenumber = 0;
 
     //related to running
     int running = 0;
     float runspeed = 0.4f;
+    float runx[10]
+    {
+        403,370,376,381,380,400,417,409,415,429
+
+    };
+    float runy[10]
+    {
+        631,662,630,624,629,631,649,627,624,634
+    };
+    int runnumber = 0;
+    int runnumber1 = 0;
+    float runanispeed = 1.5f;
+    int runspritesno = 10;
+    float runsumx = 0;
+    float runsumy = 0;
+    unsigned int runframenumber = 0;
 
     //related to falling
     int falling = 0;
@@ -116,10 +284,8 @@ public:
         610,624,605,521,447,447,447,447,447,472,582,610
     };
     int slidenumber = 0 , slidenumber1 = 0;
-    float slidelengthx = 0;
-    float slidelengthy = 0;
     float slideanispeed = 1.25f;
-    int slidesprites = 12;
+    int slidespritesno = 12;
     float slidesumy = 0;
     float slidesumx = 0;
     float slidespeed = 3.0f;
@@ -164,53 +330,61 @@ public:
     {
         if (jumptime == 0 && attacking == 0 && sliding == 0)
         {
-            if (glfwGetKey(window, runkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
+            if (glfwGetKey(window, runkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE || glfwGetKey(window, runkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
             {
-                gamestart = 1;
+                runframenumber++;
+                if (running == 0)  //when starting to run
+                {
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)runx[0] / (double)idlewidth, (double)runy[0] / (double)idleheight, 1.0f));
+                    gamestart = 1;
+                    runframenumber = 0;
+                    runsumx = 0;
+                    runsumy = 0;
+                }
+                if (glfwGetKey(window, runkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
+                {
+                    playerdirectionx = 1;
+                    running = 1;
+                }
+                else
+                {
+                    playerdirectionx = -1;
+                    running = -1;
+                }
+                if (running == 1)
+                   knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
+
+                else if (running == -1)
+                   knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
+
                 knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-
                 *knighttex = knightrun;
-
-                add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
-
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", 1);
-                knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
-                running = 1;
-
-                playerdirectionx = 1;
-
-
+                dynamicspritespacecont(knight, &runnumber1, &runnumber, &runframenumber, runanispeed, FPS, &runsumx, &runsumy, playerdirectionx, knightrun.width, knightrun.height, runx, runy, running, runspritesno);
             }
-            else if (glfwGetKey(window, runkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
+            else if (running == 1 ||running ==-1) //when the running is about to stop 
             {
-                gamestart = 1;
-                
-                knight->shader.use();
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -runsumy / 2, 0.0f));
 
-                *knighttex = knightrun;
+                if(running ==1)
+                knight->settranform(0, glm::vec3(-runsumx / 2, 0.0f, 0.0f));
 
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+                else if(running ==-1)
+                    knight->settranform(0, glm::vec3(runsumx / 2, 0.0f, 0.0f));
 
-                add = 1 - add;
-
-                add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
-
-                knight->shader.setFloat("add", add);
-                knight->shader.setInt("texdirection", -1);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
-                running = 1;
-                playerdirectionx = -1;
-
+                running = 0;
+                runnumber = 0;
+                runframenumber = 0;
+                runnumber1 = 0;
+                running = 0;
             }
             else
+            {
+                runnumber = 0;
+                runnumber1 = 0;
+                runframenumber = 0;
                 running = 0;
-
+            }
         }
     }
 
@@ -218,48 +392,62 @@ public:
     {
         if (jumptime == 0 && attacking == 0 && sliding == 0)
         {
-            if (glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+            if ((glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS) ||(glfwGetKey(window, walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS))
             {
-                gamestart = 1;
+                walkframenumber++;
+                if (walking == 0)  //when starting to walk
+                {
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)walkx[0] / (double)idlewidth, (double)walky[0] / (double)idleheight, 1.0f));
+                    gamestart = 1;
+                    walkframenumber = 0;
+                    walksumx = 0;
+                    walksumy = 0;
+                }
+                if (glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+                {
+                    playerdirectionx = 1;
+                    walking = 1;
+                }
+                else if(glfwGetKey(window,walkkeyleft) ==GLFW_PRESS && glfwGetKey(window,walkkey2) == GLFW_PRESS)
+                {
+                    playerdirectionx = -1;
+                    walking = -1;
+                }
+                if (walking == 1)
+                    knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
+
+                else if (walking == -1)
+                    knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
+
                 knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-
-                add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
-
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", 1);
-                knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
-
-                walking = 1;
-                playerdirectionx = 1;
-
                 *knighttex = knightwalk;
+                dynamicspritespacecont(knight, &walknumber1, &walknumber, &walkframenumber, walkanispeed, FPS, &walksumx, &walksumy, playerdirectionx, knightwalk.width, knightwalk.height, walkx, walky, walking, walkspritesno);
+
             }
-            else if (glfwGetKey(window,walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+            else if(walking ==1 ||walking ==-1)
             {
-                gamestart = 1;
-                
-                knight->shader.use();
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -walksumy / 2, 0.0f));
 
-                add = 1 - add;
+                if (walking == 1)
+                    knight->settranform(0, glm::vec3(-walksumx / 2, 0.0f, 0.0f));
 
-                add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
+                else if (walking == -1)
+                    knight->settranform(0, glm::vec3(walksumx / 2, 0.0f, 0.0f));
 
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", -1);
-                knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
-
-                walking = 1;
-                playerdirectionx = -1;
-                *knighttex = knightwalk;
+                walking = 0;
+                walknumber = 0;
+                walkframenumber = 0;
+                walknumber1 = 0;
+                walking = 0;
             }
             else
-                walking = 0;
+            {
+                walknumber = 0;
+                walknumber1 = 0;
+                walkframenumber = 0;
+                walking = 0;  
+            }
         }
     }
 
@@ -270,7 +458,7 @@ public:
         {
             gamestart = 1;
             
-            if (jumping == 0)
+            if (jumping == 0) 
             {
                 jumpframeno = 0;
                 jumptime = 0;
@@ -365,67 +553,7 @@ public:
             attacking = 1;
             *knighttex = *knightattack;
             knight->shader.use();
-            attnumber1 = attnumber;
-            attnumber = (int)((attackframeno *attanispeed * knight->nsprites) / FPS);
-            
-            
-            add = 0;
-            add1 = 0;
-            for (int i = 0; i <= attnumber; i++)
-            {
-                add = add + ((double)attackx[i] / (double)knightattack->width);
-            };
-            for (int i = 0; i < attnumber; i++)
-            {
-                add1 = add1 + ((double)attackx[i] / (double)knightattack->width);
-            };
-            addy = 1 - ((double)attacky[attnumber] / (double)knightattack->height);
-
-
-            if (attnumber == attsprites)
-            {
-                attacking = 0;
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)attackx[0] / (double)attackx[attsprites - 1], (double)attacky[0] / (double)attacky[attsprites - 1], 1.0f));
-                knight->settranform(0, glm::vec3(0.0f, -attsumy / 2, 0.0f));
-
-              
-                if (playerdirectionx == 1)
-                    knight->settranform(0, glm::vec3(-attsumx / 2, 0.0f, 0.0f));
-
-                else
-                    knight->settranform(0, glm::vec3(attsumx / 2, 0.0f, 0.0f));
-  
-                attnumber =0;
-                attnumber1 = 0;
-            }
-
-            if (attnumber1 != attnumber)
-            {             
-                attlengthx = knight->length1.x;
-                attlengthy = knight->length1.y;
-                knight->changemodel(0,glm::vec3(0.0f), glm::vec3((double)attackx[attnumber] / (double)attackx[attnumber-1], (double)attacky[attnumber] / (double)attacky[attnumber - 1], 1.0f));
-
-                if(playerdirectionx ==1)
-                knight->settranform(0, glm::vec3((knight->length1.x - attlengthx) / 2, (knight->length1.y - attlengthy) / 2, 0.0f));
-
-                else if(playerdirectionx ==-1)
-                    knight->settranform(0, glm::vec3(-(knight->length1.x - attlengthx) / 2, (knight->length1.y - attlengthy) / 2, 0.0f));
-
-                attsumx += knight->length1.x - attlengthx;
-                attsumy += knight->length1.y - attlengthy;
-            }
-
-            if (playerdirectionx == -1)
-            {
-                add = add + add1;     //a little swap between add and add1
-                add1 = add - add1;
-                add = add - add1;      
-            }
-            knight->shader.setFloat("add", add);
-            knight->shader.setFloat("add1", add1);
-            knight->shader.setFloat("addy", addy);
-            knight->shader.setInt("texdirection", 1); //sending texdirection =1 here because we already swaped add and add1
-
+            dynamicspritespaceloop(knight, &attnumber1, &attnumber, &attackframeno, attanispeed, FPS, &attsumx, &attsumy, playerdirectionx, knightattack->width, knightattack->height, attackx, attacky, &attacking, attspritesno);
         }
 
     }
@@ -447,74 +575,9 @@ public:
             sliding = 1;
             *knighttex =knightslide;
 
-            slidenumber1 = slidenumber;
-            slidenumber = (int)((slideframeno *slideanispeed * knight->nsprites) / FPS);
-
             knight->settranform(0, glm::vec3(playerdirectionx * slidespeed * 0.001f, 0.0f, 0.0f));
 
-            add = 0;
-            add1 = 0;
-            for (int i = 0; i <= slidenumber; i++)
-            {
-                add = add + ((double)slidex[i] / (double)knightslide.width);
-            };
-            for (int i = 0; i < slidenumber; i++)
-            {
-                add1 = add1 + ((double)slidex[i] / (double)knightslide.width);
-            };
-            addy = 1-((double)slidey[slidenumber] / (double)knightslide.height);
-            
-
-            if (slidenumber == slidesprites)
-            {
-                sliding = 0;
-                slideframeno = 0;
-
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[0] / (double)slidex[slidesprites-1], (double)slidey[0] / (double)slidey[slidesprites - 1], 1.0f));
-                knight->settranform(0, glm::vec3(0.0f, -slidesumy/2, 0.0f));
-                
-                if (playerdirectionx == 1)
-                    knight->settranform(0, glm::vec3(-slidesumx / 2, 0.0f, 0.0f));
-
-                else
-                    knight->settranform(0, glm::vec3(slidesumx / 2, 0.0f, 0.0f));
-
-                slidenumber = 0;
-                slidenumber1 = 0;
-            }
-
-            if ((slidenumber1 != slidenumber) && sliding ==1)
-            {
-                slidelengthx = knight->length1.x;
-                slidelengthy = knight->length1.y;
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[slidenumber] / (double)slidex[slidenumber - 1], (double)slidey[slidenumber] / (double)slidey[slidenumber - 1], 1.0f));
-
-                if (playerdirectionx == 1)
-                    knight->settranform(0, glm::vec3((knight->length1.x - slidelengthx) / 2, (knight->length1.y - slidelengthy) / 2, 0.0f));
-
-                else if (playerdirectionx == -1)
-                    knight->settranform(0, glm::vec3(-(knight->length1.x - slidelengthx) / 2, (knight->length1.y - slidelengthy) / 2, 0.0f));
-
-                slidesumy += knight->length1.y - slidelengthy;
-                slidesumx += knight->length1.x - slidelengthx;
-
-            }
-
-            if (playerdirectionx == -1)
-            {
-                add = add + add1;     //a little swap between add and add1
-                add1 = add - add1;
-                add = add - add1;
-            }
-
-            
-           
-            knight->shader.setFloat("add1", add1);    
-
-            knight->shader.setFloat("add", add);
-            knight->shader.setFloat("addy", addy);
-            knight->shader.setInt("texdirection", 1);
-
+            dynamicspritespaceloop(knight, &slidenumber1, &slidenumber, &slideframeno, slideanispeed, FPS, &slidesumx, &slidesumy, playerdirectionx, knightslide.width, knightslide.height, slidex, slidey, &sliding, slidespritesno);
         }
     };
 
@@ -555,16 +618,50 @@ public:
         {
             box->onside = 1;
 
-            if (walking == 1)
-                distance = walkspeed * deltatime;
+            if (walking != 0)
+            {
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -walksumy / 2, 0.0f));
 
-            else if (running == 1)
-                distance = runspeed * deltatime;
+                if (walking == 1)
+                    knight->settranform(0, glm::vec3(-walksumx / 2, 0.0f, 0.0f));
 
-            else if (jumping == 1 || jumping ==2)
+                else if (walking == -1)
+                    knight->settranform(0, glm::vec3(walksumx / 2, 0.0f, 0.0f));
+                               
+                distance = 2*walkspeed * deltatime;
+
+                walknumber = 0;
+                walknumber1 = 0;
+                walkframenumber = 0;
+                walking = 0;
+
+            }
+            else if (running != 0)
+            {
+                
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -runsumy / 2, 0.0f));
+
+                if(running ==1)
+                knight->settranform(0, glm::vec3(-runsumx / 2, 0.0f, 0.0f));
+
+                else if(running ==-1)
+                    knight->settranform(0, glm::vec3(runsumx / 2, 0.0f, 0.0f));
+
+                distance = 2*runspeed * deltatime;
+
+                runnumber = 0;
+                runnumber1 = 0;
+                runframenumber = 0;
+                running = 0;
+            }
+            else if (jumping == 1 || jumping == 2)
+            {
+                running = 0;
+                walking = 0;
                 distance = jumpspeedx * deltatime;
-
-
+            }
             if (jumping != 0)
                 jumpspeedx = 0;
 
@@ -575,11 +672,8 @@ public:
             else if (playerdirectionx == -1)
                 knight->settranform(0, glm::vec3(distance, 0.0f, 0.0f));  
 
-            running = 0;
-            walking = 0;
         }
         else
-
         {
             box->onside = 0;
             jumpspeedx = 0.4f;
@@ -697,10 +791,6 @@ public:
         knightmovement.slide(window, &knight, &knighttex, knightslide,GLFW_KEY_LEFT_SHIFT);
 
         knightmovement.idle(window, &knight, &knighttex, knightidle); //always put this in last
-
-        std::cout << knight.center1.x << "\n";
-
-
     }
     
     void draw()
@@ -793,7 +883,7 @@ public:
     void transform()
     {
         framenumber++;
-        if (framenumber == FPS / spriteanimationspeed)
+        if (framenumber == FPS/spriteanimationspeed)
             framenumber = 1;
 
     }
@@ -1436,6 +1526,7 @@ public:
 
             if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
             {
+                level0.transform();
                 level0.mousetranslate(window);
 
                 if (level0.changecursor == 0)
@@ -1443,6 +1534,7 @@ public:
             }
             else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
             {
+                level0.transform();
                 level0.mouseresize(window);
 
                 if (level0.changecursor == 0)
