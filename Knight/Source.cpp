@@ -288,7 +288,7 @@ public:
     int slidespritesno = 12;
     float slidesumy = 0;
     float slidesumx = 0;
-    float slidespeed = 3.0f;
+    float slidespeed = 0.003f;
 
     int gamestart = 0;
     int playerdirectionx = 1;
@@ -361,6 +361,7 @@ public:
                 *knighttex = knightrun;
                 dynamicspritespacecont(knight, &runnumber1, &runnumber, &runframenumber, runanispeed, FPS, &runsumx, &runsumy, playerdirectionx, knightrun.width, knightrun.height, runx, runy, running, runspritesno);
             }
+
             else if (running == 1 ||running ==-1) //when the running is about to stop 
             {
                 knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
@@ -403,7 +404,7 @@ public:
                     walksumx = 0;
                     walksumy = 0;
                 }
-                if (glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
+                if (glfwGetKey(window, walkkeyright) ==GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS)
                 {
                     playerdirectionx = 1;
                     walking = 1;
@@ -575,7 +576,7 @@ public:
             sliding = 1;
             *knighttex =knightslide;
 
-            knight->settranform(0, glm::vec3(playerdirectionx * slidespeed * 0.001f, 0.0f, 0.0f));
+            knight->settranform(0, glm::vec3(playerdirectionx * slidespeed, 0.0f, 0.0f));
 
             dynamicspritespaceloop(knight, &slidenumber1, &slidenumber, &slideframeno, slideanispeed, FPS, &slidesumx, &slidesumy, playerdirectionx, knightslide.width, knightslide.height, slidex, slidey, &sliding, slidespritesno);
         }
@@ -628,8 +629,8 @@ public:
 
                 else if (walking == -1)
                     knight->settranform(0, glm::vec3(walksumx / 2, 0.0f, 0.0f));
-                               
-                distance = 2*walkspeed * deltatime;
+
+                distance = walkspeed * deltatime;
 
                 walknumber = 0;
                 walknumber1 = 0;
@@ -639,17 +640,11 @@ public:
             }
             else if (running != 0)
             {
-                
+
                 knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
                 knight->settranform(0, glm::vec3(0.0f, -runsumy / 2, 0.0f));
 
-                if(running ==1)
-                knight->settranform(0, glm::vec3(-runsumx / 2, 0.0f, 0.0f));
-
-                else if(running ==-1)
-                    knight->settranform(0, glm::vec3(runsumx / 2, 0.0f, 0.0f));
-
-                distance = 2*runspeed * deltatime;
+                distance = runspeed * deltatime;
 
                 runnumber = 0;
                 runnumber1 = 0;
@@ -661,9 +656,24 @@ public:
                 running = 0;
                 walking = 0;
                 distance = jumpspeedx * deltatime;
-            }
-            if (jumping != 0)
                 jumpspeedx = 0;
+            }
+            else if (jumping == 3)
+                jumpspeedx = 0;
+            else if (sliding != 0)
+            {
+               
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[0] / (double)slidex[slidenumber], (double)slidey[0] / (double)slidey[slidenumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -slidesumy / 2, 0.0f));
+
+                distance = slidespeed * deltatime;
+                             
+                sliding = 0;
+                slidenumber = 0;
+                slidenumber1 = 0;
+                slideframeno = 0;
+
+            }
 
 
             if (playerdirectionx == 1)
@@ -684,7 +694,7 @@ public:
     {
         if (jumping != 0 || falling!=0)
         {
-            if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
+            if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/10 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
                 if(jumping!=0)
                     knight->settranform(0, glm::vec3(0.0f, -((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
@@ -1135,6 +1145,7 @@ public:
         for (int i = 0; i < containerno; i++)
         {
             knightclass.knightmovement.topcollisionsolid(&knightclass.knight, &container[i]);
+            std::cout << container[i].ontop;
         }
         for (int i = 0; i < containerno; i++)
         {
@@ -1145,7 +1156,9 @@ public:
         for (int i = 0; i < containerno; i++)
         {
             knightclass.knightmovement.sidecollisionsolid(&knightclass.knight, &container[i]);
+           
         }
+        std::cout << "\n";
 
         for(int i =0;i<coinnumber;i++)
         knightclass.knightmovement.collectiblecollision(&knightclass.knight, &coins[i],"audio/coin touch.wav");
