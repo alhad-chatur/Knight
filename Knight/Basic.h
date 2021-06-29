@@ -227,14 +227,13 @@ public:
             shader.setMat4("viewrotate", viewrotate);
     }
     
-    void drawquad(objecttexture tex)
+    void drawquad()
     {
         shader.use();
         shader.setInt("texture1", 0);
         shader.setMat4("transform", transform);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex.texture);
+       
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }

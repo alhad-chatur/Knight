@@ -694,7 +694,7 @@ public:
     {
         if (jumping != 0 || falling!=0)
         {
-            if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/10 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
+            if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/50 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
                 if(jumping!=0)
                     knight->settranform(0, glm::vec3(0.0f, -((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
@@ -805,7 +805,9 @@ public:
     
     void draw()
     {
-        knight.drawquad(knighttex);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, knighttex.texture);
+        knight.drawquad();
     }
     
     void deinitialize()
@@ -1145,7 +1147,6 @@ public:
         for (int i = 0; i < containerno; i++)
         {
             knightclass.knightmovement.topcollisionsolid(&knightclass.knight, &container[i]);
-            std::cout << container[i].ontop;
         }
         for (int i = 0; i < containerno; i++)
         {
@@ -1158,7 +1159,6 @@ public:
             knightclass.knightmovement.sidecollisionsolid(&knightclass.knight, &container[i]);
            
         }
-        std::cout << "\n";
 
         for(int i =0;i<coinnumber;i++)
         knightclass.knightmovement.collectiblecollision(&knightclass.knight, &coins[i],"audio/coin touch.wav");
@@ -1185,25 +1185,37 @@ public:
 
     void draw()
     {
-
-        bg2.drawquad(bgtex);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bgtex.texture);
+        bg2.drawquad();
         
-        bg.drawquad(tilemaptex);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tilemaptex.texture);
+        bg.drawquad();
         
         knightclass.draw();
 
         if (knightclass.knightmovement.gamestart == 0)
         {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, containertex.texture);
+            
             for (int i = 0; i < containerno; i++)
-                container[i].drawquad(containertex);
+                container[i].drawquad();
         }
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, cointex.texture);
         for (int i = 0; i < coinnumber; i++)
-        {
+        {           
             if (coins[i].contact == 0)
-                coins[i].drawquad(cointex);
+                coins[i].drawquad();
         }
-        slime.drawquad(slimeidle);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, slimeidle.texture);
+        slime.drawquad();
 
     }
 
@@ -1474,20 +1486,43 @@ public:
     {
         if (menustate == 0)
         {
-            container[0].drawquad(starttex);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, starttex.texture);
+            container[0].drawquad();
 
-            container[1].drawquad(optionstex);
-            container[2].drawquad(exittex);
-            pointer.drawquad(arrowtex);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, optionstex.texture);
+            container[1].drawquad();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, exittex.texture);
+            container[2].drawquad();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, arrowtex.texture);
+            pointer.drawquad();
         }
         else if (menustate == 1)
         {
-            container1[0].drawquad(resumetex);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, resumetex.texture);
+            container1[0].drawquad();
 
-            container1[1].drawquad(restarttex);
-            container1[2].drawquad(optionstex);
-            container1[3].drawquad(exittex);
-            pointer1.drawquad(arrowtex);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, restarttex.texture);
+            container1[1].drawquad();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, optionstex.texture);
+            container1[2].drawquad();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, exittex.texture);
+            container1[3].drawquad();
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, arrowtex.texture);
+            pointer1.drawquad();
         }
     }
 
