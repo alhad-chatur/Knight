@@ -11,7 +11,6 @@
 #include<fstream>
 #include<irrklang/irrKlang.h>
 
-
 float objvertices[100] = {
     // positions          // colors           // texture coords
      0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
@@ -38,8 +37,8 @@ float spritevertices[100] = {
     -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
 };
 
-int scrwidth = 1900;
-int scrheight = 1080;
+int scrwidth = 1600;
+int scrheight = 900;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
 
@@ -189,16 +188,16 @@ private:
     }
 
 public:
-    int idlewidth = 438;
-    int idleheight = 610;
+    int idlewidth;
+    int idleheight;
 
 
     //related to jumping
     int jumpframeno = 0;
     int jumping = 0;
     double jumptime = 0, jumptime1 = 0;
-    double jumpspeedy = 0.35f;
-    double jumpspeedx = 0.4f;
+    double jumpspeedy;
+    double jumpspeedx;
     float g = 0.1f;
     glm::vec3 posbeforejump = glm::vec3(0.0f);
     float groundposy = -0.78f;
@@ -208,54 +207,41 @@ public:
     unsigned int attackframeno = 0;
     int attnumber = 0;
     int attnumber1 =0;
-    float attackx[12]
-    {
-        435,389,363,352,353,413,467,468,470,494,464,435
-    };
-    float attacky[12]
-    {
-        615,617,616,614,614,616,600,597,594,607,615,615
-    };
-    float attanispeed = 1.7f;
-    int attspritesno = 12;
+    float attackx[100];
+
+    float attacky[100];
+
+    float attanispeed;
+    int attspritesno;
     float attsumx = 0;
     float attsumy = 0;
 
     //related to walking
     int walking = 0;
-    float walkspeed = 0.25f;
-    float walkx[10]
-    {
-      407,398,388,393,393,399,398,402,405,407
-    };
-    float walky[10]
-    {
-        633,657,660,638,640,632,652,650,635,637
-    };
+    float walkspeed;
+    float walkx[100];
+  
+    float walky[100];
+  
     int walknumber = 0;
     int walknumber1 = 0;
-    float walkanispeed = 1.5f;
-    int walkspritesno = 10;
+    float walkanispeed;
+    int walkspritesno;
     float walksumx = 0;
     float walksumy = 0;
     unsigned int walkframenumber = 0;
 
     //related to running
     int running = 0;
-    float runspeed = 0.4f;
-    float runx[10]
-    {
-        403,370,376,381,380,400,417,409,415,429
+    float runspeed;
+    float runx[100];
+ 
+    float runy[100];
 
-    };
-    float runy[10]
-    {
-        631,662,630,624,629,631,649,627,624,634
-    };
     int runnumber = 0;
     int runnumber1 = 0;
-    float runanispeed = 1.5f;
-    int runspritesno = 10;
+    float runanispeed;
+    int runspritesno;
     float runsumx = 0;
     float runsumy = 0;
     unsigned int runframenumber = 0;
@@ -265,7 +251,7 @@ public:
     double falltime = 0, falltime1 = 0;
 
     //related to frames
-    int FPS = 120;
+    int FPS = 60;
     int framenumber = 1;
     float add = 0;
     float add1=0;
@@ -275,20 +261,16 @@ public:
     //related to sliding
     int sliding = 0;
     unsigned int slideframeno = 0;
-    float slidex[12] =
-    {
-        438,435,504,589,657,657,657,657,657,654,501,438
-    };
-    float slidey[12] =
-    {
-        610,624,605,521,447,447,447,447,447,472,582,610
-    };
+    float slidex[100];
+
+    float slidey[100];
+ 
     int slidenumber = 0 , slidenumber1 = 0;
-    float slideanispeed = 1.25f;
-    int slidespritesno = 12;
+    float slideanispeed;
+    int slidespritesno;
     float slidesumy = 0;
     float slidesumx = 0;
-    float slidespeed = 0.003f;
+    float slidespeed;
 
     int gamestart = 0;
     int playerdirectionx = 1;
@@ -328,7 +310,7 @@ public:
 
     void run(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightrun, int runkeyright = NULL,int runkeyleft = NULL, int walkkey2 = NULL)
     {
-        if (jumptime == 0 && attacking == 0 && sliding == 0)
+        if (jumping == 0 && attacking == 0 && sliding == 0)
         {
             if (glfwGetKey(window, runkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE || glfwGetKey(window, runkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_RELEASE)
             {
@@ -391,7 +373,7 @@ public:
 
     void walk(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightwalk, int walkkeyright = NULL,int walkkeyleft = NULL, int walkkey2 = NULL)
     {
-        if (jumptime == 0 && attacking == 0 && sliding == 0)
+        if (jumping == 0 && attacking == 0 && sliding == 0)
         {
             if ((glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS) ||(glfwGetKey(window, walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS))
             {
@@ -716,7 +698,7 @@ public:
             else
                 box->ontop = 0;
         }
-        else if((glm::distance(knight->center1.x, box->center1.x) >= (box->length1.x / 2 + knight->length1.x / 2) && falling == 0) && box->ontop==1)
+        else if((glm::distance(knight->center1.x, box->center1.x) >= ((box->length1.x / 2 + knight->length1.x / 2) - box->length1.x / 50) && falling == 0) && box->ontop==1 &&jumping ==0)
         {
             falling = 1;
             falltime = 0;
@@ -783,6 +765,154 @@ public:
         knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
         knighttex = knightidle;
         knight.shader.setFloat("addy", 0.0f);
+
+         knightmovement.jumpspeedy = 0.35f;
+         knightmovement.jumpspeedx = 0.4f;
+         knightmovement.attanispeed = 1.7f;
+         knightmovement.slidespeed = 0.01f;
+         knightmovement.slideanispeed = 1.25f;
+         knightmovement.walkspeed = 0.25f;
+         knightmovement.walkanispeed = 1.5f;
+         knightmovement.runspeed = 0.4f;
+         knightmovement.runanispeed = 1.5f;
+
+         std::stringstream geek;
+         std::string name;
+         std::ifstream file("characters/knight.txt");
+         
+         //for attack
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "attack")
+             {
+                 break;
+             }
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         geek >> knightmovement.attspritesno;
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.attspritesno; i++)
+             geek >> knightmovement.attackx[i];
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.attspritesno; i++)
+             geek >> knightmovement.attacky[i];
+
+         //for slide
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "slide")
+             {
+                 break;
+             }
+         
+         }
+         
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         geek >> knightmovement.slidespritesno;
+         
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.slidespritesno; i++)
+             geek >> knightmovement.slidex[i];
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.slidespritesno; i++)
+             geek >> knightmovement.slidey[i];
+
+         //for run
+
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "run")
+             {
+                 break;
+             }
+            
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         geek >> knightmovement.runspritesno;
+         
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.runspritesno; i++)
+             geek >> knightmovement.runx[i];
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.runspritesno; i++)
+             geek >> knightmovement.runy[i];
+
+         //for walk
+
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "walk")
+             {
+                 break;
+             }
+             std::cout << 1;
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         geek >> knightmovement.walkspritesno;
+         
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.walkspritesno; i++)
+             geek >> knightmovement.walkx[i];
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.walkspritesno; i++)
+             geek >> knightmovement.walky[i];
+
+         //for idlewidth and idleheight
+
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "idle")
+             {
+                 break;
+             }
+             std::cout << 1;
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+         geek >> knightmovement.idlewidth;
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+         geek >> knightmovement.idleheight;
     }
 
     void knightanimations(GLFWwindow *window)
@@ -790,13 +920,13 @@ public:
 
         knightmovement.jump(window, &knight, &knighttex, &knightjump,GLFW_KEY_SPACE);
 
+        knightmovement.walk(window, &knight, &knighttex, knightwalk, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
+
+        knightmovement.run(window, &knight, &knighttex, knightrun, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
+
         knightmovement.fall(&knight);
 
         knightmovement.attack(window, &knight, &knighttex, &knightattack,GLFW_MOUSE_BUTTON_LEFT);
-
-        knightmovement.walk(window, &knight, &knighttex, knightwalk,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_LEFT_CONTROL);
-
-        knightmovement.run(window, &knight, &knighttex, knightrun,GLFW_KEY_D,GLFW_KEY_A,GLFW_KEY_LEFT_CONTROL);
 
         knightmovement.slide(window, &knight, &knighttex, knightslide,GLFW_KEY_LEFT_SHIFT);
 
@@ -883,7 +1013,7 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 120;
+    int FPS = 60;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;
@@ -1268,7 +1398,7 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 120;
+    int FPS = 60;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;
@@ -1690,7 +1820,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale", NULL , NULL);
+    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale",glfwGetPrimaryMonitor() , NULL);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
