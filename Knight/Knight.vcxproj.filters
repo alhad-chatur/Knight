@@ -23,22 +23,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\bg.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\bg.vs">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="attacksprite.vs">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="attacksprite.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\sprite.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="shaders\sprite.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -22,20 +22,6 @@ unsigned int indices[10] = {
     0, 1, 3, // first triangle
     1, 2, 3  // second triangle
 };
-float bgvertices[100] = {
-    // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,   15.f, 1.0f, // top right
-     0.5f, -0.5f, 0.0f,    15.f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f,    -15.f, 0.0f, // bottom left
-    -0.5f,  0.5f, 0.0f,    -15.f, 1.0f  // top left 
-};
-float spritevertices[100] = {
-    // positions          // colors           // texture coords
-     0.5f,  0.5f, 0.0f,    1.0f, 1.0f, // top right
-     0.5f, -0.5f, 0.0f,    1.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
-    -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
-};
 
 int scrwidth = 1900;
 int scrheight = 1080;
@@ -111,14 +97,10 @@ private:
             add = add - add1;
         }
 
-        knight->shader.use();
-
-        knight->shader.setFloat("add1", add1);
-
-        knight->shader.setFloat("add", add);
-        knight->shader.setFloat("addy", addy);
-        knight->shader.setInt("texdirection", 1);
-
+        knight->add1 = add1;
+        knight->add = add;
+        knight->addy = addy;
+        knight->texdirectionx = 1;
     }
 
     void dynamicspritespacecont(objectspace* knight, int* number1, int* number, unsigned int* framenumber, float anispeed, float FPS, float* sumx, float* sumy, int playerdirectionx, int width, int height, float spritex[], float spritey[], int activity, int spritenumber)
@@ -179,12 +161,10 @@ private:
             add = add - add1;
         }
 
-        knight->shader.setFloat("add1", add1);
-
-        knight->shader.setFloat("add", add);
-        knight->shader.setFloat("addy", addy);
-        knight->shader.setInt("texdirection", 1);
-
+        knight->add1 = add1;
+        knight->add = add;
+        knight->addy = addy;
+        knight->texdirectionx = 1;
     }
 
 public:
@@ -290,7 +270,6 @@ public:
 
             if (walking == 0 && running == 0)
             {
-                knight->shader.use();
                 *knighttex = knightidle;
                 add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
                 
@@ -298,11 +277,10 @@ public:
                     add = 1 - add;
 
                 add1 = add - 0.1f;
-                knight->shader.setFloat("add1", 0.0f);
-
-                knight->shader.setFloat("add", 0.1f);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", playerdirectionx);
+                knight->add1 = 0.0f;
+                knight->add = 0.1f;
+                knight->addy = 0.0f;
+                knight->texdirectionx = playerdirectionx;
             }
         }
 
@@ -339,7 +317,6 @@ public:
                 else if (running == -1)
                    knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
 
-                knight->shader.use();
                 *knighttex = knightrun;
                 dynamicspritespacecont(knight, &runnumber1, &runnumber, &runframenumber, runanispeed, FPS, &runsumx, &runsumy, playerdirectionx, knightrun.width, knightrun.height, runx, runy, running, runspritesno);
             }
@@ -402,7 +379,6 @@ public:
                 else if (walking == -1)
                     knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
 
-                knight->shader.use();
                 *knighttex = knightwalk;
                 dynamicspritespacecont(knight, &walknumber1, &walknumber, &walkframenumber, walkanispeed, FPS, &walksumx, &walksumy, playerdirectionx, knightwalk.width, knightwalk.height, walkx, walky, walking, walkspritesno);
 
@@ -461,31 +437,26 @@ public:
             {
 
                 jumping = 1;
-                knight->shader.use();
                 add = 0.1f;
                 add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
+                knight->add1 = add1;
 
+                knight->add = add;
 
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", 1);
-
+                knight->addy = 0.0f;
+                knight->texdirectionx = 1;
                 knight->settranform(0, glm::vec3(jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
             }
             else if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && jumping == 0) || jumping == 2)
             {
                 jumping = 2;
-                knight->shader.use();
                 add = 0.1f;
                 add1 = add - 0.1f;
-                knight->shader.setFloat("add1", add1);
-
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", -1);
-
+                knight->add1 = add1;
+                knight->add = add;
+                knight->addy = 0;
+                knight->texdirectionx = -1;
                 knight->settranform(0, glm::vec3(-jumpspeedx * deltatime, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
             }
@@ -493,7 +464,6 @@ public:
             else if (jumping == 0 || jumping == 3)
             {
                 jumping = 3;
-                knight->shader.use();
                 add = 0.4955f;
                 add1 =0.39465f;
 
@@ -504,11 +474,11 @@ public:
                     add = add - add1;
                 }
 
-                knight->shader.setFloat("add1", add1);
-                knight->shader.setFloat("add", add);
-                knight->shader.setFloat("addy", 0.0f);
-                knight->shader.setInt("texdirection", 1);
-
+                
+                knight->add1 = add1;
+                knight->add = add;
+                knight->addy = 0;
+                knight->texdirectionx = 1;
                 knight->settranform(0, glm::vec3(0.0f, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
             }
@@ -544,7 +514,7 @@ public:
 
             attacking = 1;
             *knighttex = *knightattack;
-            knight->shader.use();
+
             dynamicspritespaceloop(knight, &attnumber1, &attnumber, &attackframeno, attanispeed, FPS, &attsumx, &attsumy, playerdirectionx, knightattack->width, knightattack->height, attackx, attacky, &attacking, attspritesno);
         }
 
@@ -563,7 +533,6 @@ public:
                 slidesumx = 0;
             }
             slideframeno++;
-            knight->shader.use();
             sliding = 1;
             *knighttex =knightslide;
 
@@ -770,10 +739,10 @@ public:
 
     void initialize()
     {
-        knight.intitialize(spritevertices, indices, "attacksprite.vs", "attacksprite.fs");
+        knight.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         knight.setmodel(0, glm::vec3(0.5f, -0.9f, 0.0f), glm::vec3(0.25f));
         knighttex = knightidle;
-        knight.shader.setFloat("addy", 0.0f);
+        knight.addy = 0.0f;
 
          knightmovement.jumpspeedy = 0.35f;
          knightmovement.jumpspeedx = 0.4f;
@@ -884,7 +853,6 @@ public:
              {
                  break;
              }
-             std::cout << 1;
          }
          std::getline(file, name);
          geek = (std::stringstream)name;
@@ -959,32 +927,6 @@ public:
 class Level0
 {
 public:
-
-    float coinvertices[100] =
-    {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   0.166, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,    0.166, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
-    };
-    float slimevertices[100] =
-    {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   0.04, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,    0.04, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
-    };
-
-    float texmapvertices[100]
-    {
-        // positions          // colors           // texture coords
-         1.0f,  1.0f, 0.0f,   1.0f, 1.0f, // top right
-         1.0f, -1.0f, 0.0f,    1.0f, 0.0f, // bottom right
-        -1.0f, -1.0f, 0.0f,    0.0f, 0.0f, // bottom left
-        -1.0f,  1.0f, 0.0f,    0.0f, 1.0f  // top left 
-    };
     
     objectspace bg;
     
@@ -1024,10 +966,19 @@ public:
     //related to frames
     int FPS = 120;
     int framenumber = 1;
-    float add;
     double framestart, frameend, deltatime = 0;
     float spriteanimationspeed = 1.3f; 
-   
+    float add = 0;
+    float add1 = 0;
+
+    //related to coins
+    float coinanispeed = 2.3f;
+    float coinnsprites = 6;
+
+    //related to slime
+    float slimeanispeed = 1.5f;
+    float slimensprites = 25;
+
 
     Knight knightclass;
 
@@ -1041,37 +992,37 @@ public:
 
     void initialize()
     {
-        bg.intitialize(texmapvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         bg.model = glm::mat4(1.0f);
-        bg.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f));
+        bg.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(4.0f, 2.0f, 1.0f));
 
-        bg2.intitialize(texmapvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg2.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         bg2.model = glm::mat4(1.0f);
-        bg2.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 1.0f, 1.0f));
+        bg2.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(4.0f, 2.0f, 1.0f));
 
         knightclass.initialize();
 
-        container[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[0].model = glm::mat4(1.0f);
         container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
 
-        container[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[1].model = glm::mat4(1.0f);
         container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[2].model = glm::mat4(1.0f);
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
        
         for (int i = 0; i < coinnumber; i++)
         {
-            coins[i].intitialize(coinvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+            coins[i].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
             coins[i].model = glm::mat4(1.0f);
             coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
        
         }
-        slime.intitialize(slimevertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        slime.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         slime.model = glm::mat4(1.0f);
         slime.setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));   
 
@@ -1303,23 +1254,26 @@ public:
         knightclass.knightmovement.collectiblecollision(&knightclass.knight, &coins[i],"audio/coin touch.wav");
 
         //coins
-        float add = 0;
         for (int i = 0; i < coinnumber; i++)
         {
-            coins[i].nsprites = 6;
+            coins[i].nsprites = coinnsprites;
             
-            add = (1 / coins[i].nsprites) * (int)((framenumber *2.3 * coins[i].nsprites) / FPS);
-            coins[i].shader.use();
-            coins[i].shader.setFloat("add", add);
-
+            add = (1 / coins[i].nsprites) * (int)((framenumber *coinanispeed * coins[i].nsprites) / FPS);
+            add1 = (1 / coins[i].nsprites) * ((int)((framenumber * coinanispeed * coins[i].nsprites) / FPS) -1);
+            coins[i].add = add;
+            coins[i].add1 = add1;
+            coins[i].addy = 0.0f;
         }
-        slime.nsprites = 25;
 
-        add = (1 / slime.nsprites) * (int)((framenumber * 1.5 * slime.nsprites) / FPS);
-        slime.shader.use();
-        slime.shader.setFloat("add", add);
+        //slime
+        slime.nsprites = slimensprites;
 
+        add = (1 / slime.nsprites) * (int)((framenumber * slimeanispeed * slime.nsprites) / FPS);
+        add1 = (1 / slime.nsprites) * ((int)((framenumber * slimeanispeed * slime.nsprites) / FPS) - 1);
 
+        slime.add = add;
+        slime.add1 = add1;
+        slime.addy = 0.0f;
     }
 
     void draw()
@@ -1430,34 +1384,34 @@ public:
 
     void initialize()
     {
-        bg.intitialize(bgvertices, indices, "shaders/bg.vs", "shaders/bg.fs");
+        bg.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         bg.setmodel(0, glm::vec3(0.0f, -0.75f, 0.0f), glm::vec3(20.0f, 0.5f, 1.0f));
 
-        container[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
 
-        container[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container1[0].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container1[0].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container1[1].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container1[1].setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
 
-        container1[2].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container1[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        container1[3].intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        container1[3].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         container1[3].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-        pointer.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        pointer.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         pointer.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
 
-        pointer1.intitialize(objvertices, indices, "shaders/sprite.vs", "shaders/sprite.fs");
+        pointer1.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         pointer1.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
     }
 
@@ -1598,7 +1552,7 @@ public:
     {
         if (menustate == 0)
         {
-            pointer.shader.setInt("texdirection", -1);
+            pointer.texdirectionx = -1;
 
             if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
                 *currentclass = 0;
@@ -1608,7 +1562,7 @@ public:
         }
         if (menustate == 1)
         {
-            pointer1.shader.setInt("texdirection", -1);
+            pointer1.texdirectionx = -1;
 
             if (pointerpos == 0 && glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
                 *currentclass = 0;
@@ -1690,7 +1644,7 @@ public:
         level0.getmatrix("Levels/level0.txt");
         menu.initialize();
         menu.getmatrix("Levels/menu.txt");
-        level0.knightclass.knightmovement.gamestart == 0;
+        level0.knightclass.knightmovement.gamestart = 0;
         soundengine->play2D("audio/solid.wav"); //dummy audio for irrklang to get started
 
     }

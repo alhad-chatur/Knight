@@ -88,13 +88,18 @@ public:
     glm::mat4 transform = glm::mat4(1.0f);
     float vertex1[20];
     glm::vec4 center, length, center1,length1;
-    float speed = 1.3f;
     float nsprites = 10;
     glm::vec3 viewtranslatevec = glm::vec3(0.0f); //used to store the data in the file for changing the center
     glm::vec4 newmodelscale = glm::vec4(1.0f); //used to store the data in the file for changing the size of sprite
     int ontop =0;
     int onside = 0;
     int contact = 0;
+    float add = 1.0f;
+    float add1 = 0.0f;
+    float addy = 0.0f;
+    float texdirectionx = 1;
+    float speed = 1.3f;
+
 
     void intitialize(float vertices[], unsigned int indices[], const char* vertexshader = "bg.vs", const char* fragmentshader = "bg.fs",int texdirection =1)
     {
@@ -157,7 +162,9 @@ public:
 
         shader.setMat4("transform", transform);
         shader.setInt("texdirection", texdirection);
-        shader.setFloat("addy", -10.0f);
+        shader.setFloat("addy", 0.0f);
+        shader.setFloat("add", 1.0f);
+        shader.setFloat("add1", 0.0f);
 
     }
     
@@ -180,9 +187,6 @@ public:
             length = scalefactor * length;
         }
         length1 = length;
-        shader.use();
-        shader.setMat4("model", model);
-
     }
     
     void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
@@ -197,9 +201,6 @@ public:
             model = glm::scale(model, scale);
         else
             model = glm::scale(model, glm::vec3(scalefactor));
-
-        shader.use();
-        shader.setMat4("model", model);
 
     }
     
@@ -220,18 +221,25 @@ public:
             viewscale = glm::scale(viewscale, glm::vec3(scalefactor));
             length = scalefactor * length;
         }
-        shader.use();
-        shader.setMat4("viewtranslate", viewtranslate);
-        shader.setMat4("viewscale", viewscale);
-
-            shader.setMat4("viewrotate", viewrotate);
     }
     
     void drawquad()
     {
-        shader.use();
         shader.setInt("texture1", 0);
         shader.setMat4("transform", transform);
+
+
+        shader.use();
+        shader.setMat4("model", model);
+        shader.setMat4("viewtranslate", viewtranslate);
+        shader.setMat4("viewscale", viewscale);
+        shader.setMat4("viewrotate", viewrotate);
+
+        shader.setMat4("transform", transform);
+        shader.setInt("texdirection", texdirectionx);
+        shader.setFloat("addy", addy);
+        shader.setFloat("add", add);
+        shader.setFloat("add1",add1);
 
        
         glBindVertexArray(vao);

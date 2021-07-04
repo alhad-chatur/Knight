@@ -155,10 +155,6 @@
   <ItemGroup>
     <None Include="attacksprite.fs" />
     <None Include="attacksprite.vs" />
-    <None Include="shaders\bg.fs" />
-    <None Include="shaders\bg.vs" />
-    <None Include="shaders\sprite.fs" />
-    <None Include="shaders\sprite.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basic.h" />

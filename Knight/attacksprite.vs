@@ -13,6 +13,8 @@ uniform mat4 viewrotate;
 uniform mat4 transform;
 uniform int texdirection; 
 uniform float add1;
+uniform float yoffset =0;
+uniform int nrows =1;
 
 void main()
 {
@@ -33,11 +35,11 @@ void main()
 
     if(aTexCoord.y ==1.0f)
 	{
-	 TexCoord.y +=0.0f;
+	 TexCoord.y +=yoffset;
 	}
 	else if(aTexCoord.y ==0.0f)
 	{
-	TexCoord.y +=addy;
+	TexCoord.y +=(addy/nrows);
 	}
 	TexCoord = vec2(TexCoord.x*texdirection,TexCoord.y);
 }
