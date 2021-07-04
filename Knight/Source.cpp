@@ -37,8 +37,8 @@ float spritevertices[100] = {
     -0.5f,  0.5f, 0.0f,    0.0f, 1.0f  // top left 
 };
 
-int scrwidth = 1600;
-int scrheight = 900;
+int scrwidth = 1900;
+int scrheight = 1080;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
 
@@ -251,7 +251,7 @@ public:
     double falltime = 0, falltime1 = 0;
 
     //related to frames
-    int FPS = 60;
+    int FPS = 120;
     int framenumber = 1;
     float add = 0;
     float add1=0;
@@ -494,11 +494,20 @@ public:
             {
                 jumping = 3;
                 knight->shader.use();
-                add = 0.5f;
-                add1 = add - 0.1f;
+                add = 0.4955f;
+                add1 =0.39465f;
+
+                if (playerdirectionx == -1)
+                {
+                    add = add + add1;
+                    add1 = add - add1;
+                    add = add - add1;
+                }
+
                 knight->shader.setFloat("add1", add1);
                 knight->shader.setFloat("add", add);
                 knight->shader.setFloat("addy", 0.0f);
+                knight->shader.setInt("texdirection", 1);
 
                 knight->settranform(0, glm::vec3(0.0f, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
@@ -522,7 +531,7 @@ public:
     void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack,int attackkey = NULL)
     {
         
-        if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1)
+        if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1 && running ==0 && walking ==0)
         {
             
             if (attacking == 0)
@@ -558,7 +567,7 @@ public:
             sliding = 1;
             *knighttex =knightslide;
 
-            knight->settranform(0, glm::vec3(playerdirectionx * slidespeed, 0.0f, 0.0f));
+            knight->settranform(0, glm::vec3(playerdirectionx * slidespeed*deltatime, 0.0f, 0.0f));
 
             dynamicspritespaceloop(knight, &slidenumber1, &slidenumber, &slideframeno, slideanispeed, FPS, &slidesumx, &slidesumy, playerdirectionx, knightslide.width, knightslide.height, slidex, slidey, &sliding, slidespritesno);
         }
@@ -698,7 +707,7 @@ public:
             else
                 box->ontop = 0;
         }
-        else if((glm::distance(knight->center1.x, box->center1.x) >= ((box->length1.x / 2 + knight->length1.x / 2) - box->length1.x / 50) && falling == 0) && box->ontop==1 &&jumping ==0)
+        else if((glm::distance(knight->center1.x, box->center1.x) >= ((box->length1.x / 2 + knight->length1.x / 2)) && falling == 0) && box->ontop==1 &&jumping ==0)
         {
             falling = 1;
             falltime = 0;
@@ -769,7 +778,7 @@ public:
          knightmovement.jumpspeedy = 0.35f;
          knightmovement.jumpspeedx = 0.4f;
          knightmovement.attanispeed = 1.7f;
-         knightmovement.slidespeed = 0.01f;
+         knightmovement.slidespeed = 0.6f;
          knightmovement.slideanispeed = 1.25f;
          knightmovement.walkspeed = 0.25f;
          knightmovement.walkanispeed = 1.5f;
@@ -920,15 +929,15 @@ public:
 
         knightmovement.jump(window, &knight, &knighttex, &knightjump,GLFW_KEY_SPACE);
 
+        knightmovement.attack(window, &knight, &knighttex, &knightattack, GLFW_MOUSE_BUTTON_LEFT);
+
+        knightmovement.slide(window, &knight, &knighttex, knightslide, GLFW_KEY_LEFT_SHIFT);
+             
         knightmovement.walk(window, &knight, &knighttex, knightwalk, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
 
         knightmovement.run(window, &knight, &knighttex, knightrun, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
 
         knightmovement.fall(&knight);
-
-        knightmovement.attack(window, &knight, &knighttex, &knightattack,GLFW_MOUSE_BUTTON_LEFT);
-
-        knightmovement.slide(window, &knight, &knighttex, knightslide,GLFW_KEY_LEFT_SHIFT);
 
         knightmovement.idle(window, &knight, &knighttex, knightidle); //always put this in last
     }
@@ -1013,7 +1022,7 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 60;
+    int FPS = 120;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;
@@ -1398,7 +1407,7 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 60;
+    int FPS = 120;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;
