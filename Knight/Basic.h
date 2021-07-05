@@ -227,14 +227,10 @@ public:
     {
         shader.setInt("texture1", 0);
         shader.setMat4("transform", transform);
-
-
-        shader.use();
         shader.setMat4("model", model);
         shader.setMat4("viewtranslate", viewtranslate);
         shader.setMat4("viewscale", viewscale);
         shader.setMat4("viewrotate", viewrotate);
-
         shader.setMat4("transform", transform);
         shader.setInt("texdirection", texdirectionx);
         shader.setFloat("addy", addy);
@@ -331,8 +327,6 @@ public:
         };
         model = glm::mat4(1.0f);
         model = temp2;
-        shader.use();
-        shader.setMat4("model", model);
 
         std::getline(*file, line);
         geek = std::stringstream(line);
