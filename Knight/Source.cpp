@@ -182,7 +182,8 @@ public:
     glm::vec3 posbeforejump = glm::vec3(0.0f);
     float groundposy = -0.78f;
     float jump1widtha,jump2widtha,jump3widtha, jump1widthb, jump2widthb, jump3widthb;
-
+    enum class activity{RUNNING,WALKING,NONE};
+    activity beforejump =activity::NONE;
 
     //related to attack
     int attacking = 0;
@@ -429,19 +430,15 @@ public:
 
                 if (running != 0)
                 {
-                   
-                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
-                    runnumber = 0;
-                    runnumber1 = 0;
+                    beforejump = activity::RUNNING;  
                     runframenumber = 0;
                     running = 0;
-
                 }
                 else if (walking != 0)
                 {                    
-                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
-                    walknumber = 0;
-                    walknumber1 = 0;
+                    beforejump = activity::WALKING;
+                    
+                    
                     walkframenumber = 0;
                     walking = 0;
 
@@ -498,22 +495,13 @@ public:
                     add = add - add1;
                 }
 
-                
+
                 knight->add1 = add1;
                 knight->add = add;
                 knight->addy = 0;
                 knight->texdirectionx = 1;
                 knight->settranform(0, glm::vec3(0.0f, ((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
-            }
-
-            if (knight->center1.y <= (groundposy + knight->length1.y / 2))
-            {
-                knight->settranform(0, glm::vec3(0.0f, ((groundposy + knight->length1.y / 2) - knight->center1.y), 0.0f));
-                knight->center1.y = (groundposy + knight->length1.y / 2);
-                jumping = 0;
-                jumptime = 0;
-                jumpframeno = 0;
             }
 
             jumpframeno++;
@@ -626,18 +614,6 @@ public:
                 knight->settranform(0, glm::vec3(-fallspeedx * deltatime, 0, 0));
             }
 
-
-            if (knight->center1.y <= (groundposy + knight->length1.y / 2))
-            {
-                knight->settranform(0, glm::vec3(0.0f, ((groundposy + knight->length1.y / 2) - knight->center1.y), 0.0f));
-                knight->center1.y = (groundposy + knight->length1.y / 2);
-                falling = 0;
-                falltime = 0;
-                falltime1 = 0;
-                fallspeedx = 0;
-            }
-
-
         };
 
     }
@@ -707,6 +683,11 @@ public:
                 slideframeno = 0;
 
             }
+            else if (falling != 0)
+            {
+                fallspeedx = 0;
+            }
+
 
 
             if (playerdirectionx == 1)
@@ -727,15 +708,31 @@ public:
     {
         if (jumping != 0 || falling!=0)
         {
-            if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/50 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
+            if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/100 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
+                if (beforejump == activity::RUNNING)
+                {
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
+                    beforejump = activity::NONE;
+                    runnumber = 0;
+                    runnumber1 = 0;
+
+                }
+                else if (beforejump == activity::WALKING)
+                {
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                    walknumber = 0;
+                    walknumber1 = 0;
+                    beforejump = activity::NONE;
+                }
+                
+                
+                
                 if(jumping!=0)
                     knight->settranform(0, glm::vec3(0.0f, -((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
 
                 else if(falling!=0)
                     knight->settranform(0, glm::vec3(0.0f, (20.0 * g * ((falltime * falltime) - (falltime1*falltime1))), 0.0f));
-
-
                 box->ontop = 1;
 
                 falling = 0;
@@ -821,7 +818,7 @@ public:
 
     objecttexture knightidle = objecttexture("textures/idle.png", 1);
 
-    objecttexture knightslide = objecttexture("textures/slide.png", 1);
+    objecttexture knightslide = objecttexture("textures/slide1.png", 1);
 
     objecttexture knightrun = objecttexture("textures/run.png", 1);
 
@@ -834,11 +831,11 @@ public:
         knighttex = knightidle;
         knight.addy = 0.0f;
 
-         knightmovement.jumpspeedy = 0.35f;
+         knightmovement.jumpspeedy = 0.28f;
          knightmovement.jumpspeedx = 0.4f;
          knightmovement.attanispeed = 1.7f;
          knightmovement.slidespeed = 0.6f;
-         knightmovement.slideanispeed = 1.25f;
+         knightmovement.slideanispeed = 1.5f;
          knightmovement.walkspeed = 0.25f;
          knightmovement.walkanispeed = 1.5f;
          knightmovement.runspeed = 0.4f;
@@ -1076,9 +1073,9 @@ public:
     
     objectspace bg2;
 
-    objectspace container[3];
+    objectspace container[13];
 
-    int containerno = 3; //when adding new containers do uncomment the game.getmatrix() function for one time
+    int containerno = 13; //when adding new containers do comment the game.getmatrix() function for one time
 
     objectspace coins[4];
 
@@ -1092,7 +1089,7 @@ public:
 
     objecttexture cointex = objecttexture("textures/coins.png", 1);
 
-    objecttexture tilemaptex = objecttexture("textures/level0.png", 1);
+    objecttexture tilemaptex = objecttexture("textures/level00.png", 1);
 
     objecttexture slimeidle = objecttexture("textures/slimeidle.png", 1);
 
@@ -1138,27 +1135,23 @@ public:
     {
         bg.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         bg.model = glm::mat4(1.0f);
-        bg.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(4.0f, 2.0f, 1.0f));
+        bg.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
 
         bg2.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
         bg2.model = glm::mat4(1.0f);
-        bg2.setmodel(0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(4.0f, 2.0f, 1.0f));
+        bg2.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
 
         knightclass.initialize();
 
-        container[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[0].model = glm::mat4(1.0f);
-        container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+        for (int i = 0; i < containerno; i++)
+        {
 
-        container[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[1].model = glm::mat4(1.0f);
-        container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+            container[i].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
+            container[i].model = glm::mat4(1.0f);
+            container[i].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        }
 
-        container[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[2].model = glm::mat4(1.0f);
-        container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
 
-       
         for (int i = 0; i < coinnumber; i++)
         {
             coins[i].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
@@ -1209,15 +1202,17 @@ public:
 
     void mousetranslate(GLFWwindow* window)
     {
-        mousetranslatesprite(window, &knightclass.knight, &changecursor);    
-       
-            for (int i = 0; i < containerno; i++)
+        mousetranslatesprite(window, &knightclass.knight, &changecursor);
+
+         for (int i = 0; i < containerno; i++)
+         {
+           if( mousetranslatesprite(window, &container[i], &changecursor)==1)
+                   break;
+         }
+         for (int i = 0; i < coinnumber; i++)
             {
-                mousetranslatesprite(window, &container[i], &changecursor);
-            }
-            for (int i = 0; i < coinnumber; i++)
-            {
-                mousetranslatesprite(window, &coins[i], &changecursor);
+                if (mousetranslatesprite(window, &coins[i], &changecursor) == 1)
+                    break;
             }
             mousetranslatesprite(window, &slime, &changecursor);
     }
@@ -1269,8 +1264,7 @@ public:
 
         for (int i = 0; i < containerno; i++)
         {
-
-            container[i].readdata("cont", &file2, i);
+         container[i].readdata("cont", &file2, i);
         }
         for (int i = 0; i < coinnumber; i++)
         {
@@ -1371,10 +1365,94 @@ public:
             }
         }
         
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            if (knightclass.knightmovement.gamestart == 1)
+            {
+                bg.settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                bg2.settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+                knightclass.knight.settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                }
+                slime.settranform(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+
+            }
+            else
+            {
+
+                bg.setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                bg2.setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+                knightclass.knight.setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+                }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+                }
+                slime.setview(0, glm::vec3(0.0f, -slidebgspeed, 0.0f));
+
+            }
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            if (knightclass.knightmovement.gamestart == 1)
+            {
+                bg.settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                bg2.settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+                knightclass.knight.settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+                }
+                slime.settranform(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+            }
+            else
+            {
+
+                bg.setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                bg2.setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+                knightclass.knight.setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                for (int i = 0; i < containerno; i++)
+                {
+                    container[i].setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+                }
+                for (int i = 0; i < coinnumber; i++)
+                {
+                    coins[i].setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+                }
+                slime.setview(0, glm::vec3(0.0f, slidebgspeed, 0.0f));
+
+
+            }
+        }
+
     }
 
     void processmovement(GLFWwindow* window)
-    {
+    {   
         //knight collisions
         knightclass.knightmovement.feedframedata(framenumber, deltatime);
 
@@ -1801,6 +1879,7 @@ public:
             glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             
+
             if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             {
                 currentclass = 1;
@@ -1927,7 +2006,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale",glfwGetPrimaryMonitor() , NULL);
+    GLFWwindow* window = glfwCreateWindow(scrwidth, scrheight, "A Knight's Tale",NULL , NULL);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

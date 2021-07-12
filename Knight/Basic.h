@@ -383,7 +383,7 @@ public:
     }
 };
 
-void mousetranslatesprite(GLFWwindow* window, objectspace *sprite, int* changecursor)
+int mousetranslatesprite(GLFWwindow* window, objectspace *sprite, int* changecursor)
 {
     GLFWcursor* shift = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     
@@ -405,8 +405,11 @@ void mousetranslatesprite(GLFWwindow* window, objectspace *sprite, int* changecu
         {
             sprite->setview(0, glm::vec3(xmouse, ymouse, 0.0f) - glm::vec3(sprite->center1.x, sprite->center1.y, sprite->center1.z));
         }
-        *changecursor = *changecursor +1;
+        *changecursor = *changecursor + 1;
+        return 1;
     }
+    else
+        return 0;
 }
 
 void mouseresizesprite(GLFWwindow* window,objectspace* sprite,int* changecursor)
