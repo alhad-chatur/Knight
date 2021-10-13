@@ -23,8 +23,9 @@ unsigned int indices[10] = {
     1, 2, 3  // second triangle
 };
 
-int scrwidth = 1900;
-int scrheight = 1080;
+int scrwidth = 1600;
+int scrheight = 900;
+int FPS = 60;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
 
@@ -236,7 +237,6 @@ public:
     int falldirectionx = 1;
 
     //related to frames
-    int FPS = 120;
     int framenumber = 1;
     float add = 0;
     float add1=0;
@@ -456,6 +456,25 @@ public:
 
             if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS && jumping == 0) || jumping == 1)
             {
+                if (jumping == 0)
+                {
+                    if (beforejump == activity::RUNNING)
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
+                        beforejump = activity::NONE;
+                        runnumber = 0;
+                        runnumber1 = 0;
+
+                    }
+                    else if (beforejump == activity::WALKING)
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                        walknumber = 0;
+                        walknumber1 = 0;
+                        beforejump = activity::NONE;
+                    }
+                }
+
 
                 jumping = 1;
                 add = jump1widthb;
@@ -471,6 +490,24 @@ public:
             }
             else if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS && jumping == 0) || jumping == 2)
             {
+                if (jumping == 0)
+                {
+                    if (beforejump == activity::RUNNING)
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
+                        beforejump = activity::NONE;
+                        runnumber = 0;
+                        runnumber1 = 0;
+
+                    }
+                    else if (beforejump == activity::WALKING)
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                        walknumber = 0;
+                        walknumber1 = 0;
+                        beforejump = activity::NONE;
+                    }
+                }
                 jumping = 2;
                 add = jump2widthb;
                 add1 = jump2widtha;
@@ -710,29 +747,9 @@ public:
         {
             if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/100 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
-                if (beforejump == activity::RUNNING)
-                {
-                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
-                    beforejump = activity::NONE;
-                    runnumber = 0;
-                    runnumber1 = 0;
-
-                }
-                else if (beforejump == activity::WALKING)
-                {
-                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
-                    walknumber = 0;
-                    walknumber1 = 0;
-                    beforejump = activity::NONE;
-                }
+               
                 
-                
-                
-                if(jumping!=0)
-                    knight->settranform(0, glm::vec3(0.0f, -((jumpspeedy * (jumptime - jumptime1)) - (0.5 * g * ((jumptime * jumptime) - (jumptime1 * jumptime1)))), 0.0f));
-
-                else if(falling!=0)
-                    knight->settranform(0, glm::vec3(0.0f, (20.0 * g * ((falltime * falltime) - (falltime1*falltime1))), 0.0f));
+                knight->settranform(0, glm::vec3(0.0f, -(glm::distance(knight->center1.y, box->center1.y) - (knight->length1.y + box->length1.y) / 2), 0.0f));
                 box->ontop = 1;
 
                 falling = 0;
@@ -832,14 +849,14 @@ public:
         knight.addy = 0.0f;
 
          knightmovement.jumpspeedy = 0.28f;
-         knightmovement.jumpspeedx = 0.4f;
+         knightmovement.jumpspeedx = 0.3f;
          knightmovement.attanispeed = 1.7f;
          knightmovement.slidespeed = 0.6f;
          knightmovement.slideanispeed = 1.5f;
          knightmovement.walkspeed = 0.25f;
          knightmovement.walkanispeed = 1.5f;
-         knightmovement.runspeed = 0.4f;
-         knightmovement.runanispeed = 1.7f;
+         knightmovement.runspeed = 0.3f;
+         knightmovement.runanispeed = 1.4f;
 
          std::stringstream geek;
          std::string name;
@@ -864,14 +881,20 @@ public:
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.attspritesno; i++)
-             geek >> knightmovement.attackx[i];
-
+         {
+             float temp;
+             geek >> temp;
+             knightmovement.attackx[i] = temp * knightattack.width;
+         }
          std::getline(file, name);
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.attspritesno; i++)
-             geek >> knightmovement.attacky[i];
-
+         {
+             float temp;
+             geek >> temp;
+             knightmovement.attacky[i] = temp*knightattack.height;
+         }
          //for slide
          for (int i = 0; i > -1; i++)
          {
@@ -893,14 +916,20 @@ public:
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.slidespritesno; i++)
-             geek >> knightmovement.slidex[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.slidex[i] = temp * knightslide.width;
+         }
          std::getline(file, name);
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.slidespritesno; i++)
-             geek >> knightmovement.slidey[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.slidey[i] = temp * knightslide.height;
+         }
          //for run
 
          for (int i = 0; i > -1; i++)
@@ -922,14 +951,20 @@ public:
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.runspritesno; i++)
-             geek >> knightmovement.runx[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.runx[i] = temp * knightrun.width;
+         }
          std::getline(file, name);
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.runspritesno; i++)
-             geek >> knightmovement.runy[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.runy[i] = temp * knightrun.height;
+         }
          //for walk
 
          for (int i = 0; i > -1; i++)
@@ -950,14 +985,20 @@ public:
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.walkspritesno; i++)
-             geek >> knightmovement.walkx[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.walkx[i] = temp * knightwalk.width;
+         }
          std::getline(file, name);
          geek = (std::stringstream)name;
 
          for (int i = 0; i < knightmovement.walkspritesno; i++)
-             geek >> knightmovement.walky[i];
-
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.walky[i] = temp * knightwalk.height;
+         }
          //for idlewidth and idleheight
 
          for (int i = 0; i > -1; i++)
@@ -972,12 +1013,15 @@ public:
          }
          std::getline(file, name);
          geek = (std::stringstream)name;
-         geek >> knightmovement.idlewidth;
+         float temp =0;
+         geek >> temp;
+         knightmovement.idlewidth = temp * knightidle.width;
 
          std::getline(file, name);
          geek = (std::stringstream)name;
-         geek >> knightmovement.idleheight;
-
+         temp =0;
+         geek >> temp;
+         knightmovement.idleheight = temp* knightidle.height;
          //for jumping sprite values
 
          for (int i = 0; i > -1; i++)
@@ -1105,7 +1149,6 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 120;
     int framenumber = 1;
     double framestart, frameend, deltatime = 0;
     float spriteanimationspeed = 1.3f; 
@@ -1583,7 +1626,6 @@ public:
     int changecursor = 0;
 
     //related to frames
-    int FPS = 120;
     int framenumber = 1;
     float add;
     double framestart, frameend, deltatime = 0;

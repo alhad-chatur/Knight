@@ -165,6 +165,7 @@ public:
         shader.setFloat("addy", 0.0f);
         shader.setFloat("add", 1.0f);
         shader.setFloat("add1", 0.0f);
+        shader.setInt("miplevel", 0);
 
     }
     
