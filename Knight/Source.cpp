@@ -23,8 +23,8 @@ unsigned int indices[10] = {
     1, 2, 3  // second triangle
 };
 
-int scrwidth = 1600;
-int scrheight = 900;
+int scrwidth = 1280;
+int scrheight = 1024;
 int FPS = 60;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
@@ -38,10 +38,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 class Movement
 {
 private:
-    void dynamicspritespaceloop(objectspace* knight, int* number1, int* number, unsigned int* frameno, float anispeed, float FPS, float* sumx, float* sumy, int playerdirectionx, int width, int height, float spritex[], float spritey[], int* activity, int spritenumber)
+    void dynamicspritespaceloop(objectspace* knight, int* number1, int* number, unsigned int* frameno, float anispeed, float FPS, float* sumx, float* sumy, int playerdirectionx, int width, int height, float spritex[], float spritey[], int* activity, int spritenumber,int idlewidth,int idleheight)
     {
         *number1 = *number;
-        *number = (int)(((*frameno) * anispeed * (knight->nsprites)) / FPS);
+        *number = (int)(((*frameno) * anispeed * (knight->nsprites)) / FPS);  
 
         float add = 0;
         float add1 = 0;
@@ -61,7 +61,7 @@ private:
             *activity = 0;
             *frameno = 0;
 
-            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)spritex[0] / (double)spritex[spritenumber - 1], (double)spritey[0] / (double)spritey[spritenumber - 1], 1.0f));
+            knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)spritex[spritenumber - 1], (double)idleheight / (double)spritey[spritenumber - 1], 1.0f));
             knight->settranform(0, glm::vec3(0.0f, -*sumy / 2, 0.0f));
 
             if (playerdirectionx == 1)
@@ -108,6 +108,7 @@ private:
     {
         *number1 = *number;
         *number = (int)(((*framenumber) * anispeed * (knight->nsprites)) / FPS);
+
 
         if (*number == spritenumber)
         {
@@ -171,6 +172,8 @@ private:
 public:
     int idlewidth;
     int idleheight;
+    int crouchidlewidth;
+    int crouchidleheight;
 
 
     //related to jumping
@@ -183,6 +186,7 @@ public:
     glm::vec3 posbeforejump = glm::vec3(0.0f);
     float groundposy = -0.78f;
     float jump1widtha,jump2widtha,jump3widtha, jump1widthb, jump2widthb, jump3widthb;
+    int jumptexwidth =0;
     enum class activity{RUNNING,WALKING,NONE};
     activity beforejump =activity::NONE;
 
@@ -257,6 +261,23 @@ public:
     float slidesumx = 0;
     float slidespeed;
 
+
+    //related to crouching
+    int crouching = 0;
+    int crouchmoving = 0;
+    float crouchmovspeed;
+    float crouchx[100];
+    float crouchy[100];
+    int crouchnumber = 0;
+    int crouchnumber1 = 0;
+    float crouchanispeed;
+    int crouchspritesno;
+    float crouchsumx = 0;
+    float crouchsumy = 0;
+    unsigned int crouchframenumber = 0;
+    float crouchtoggletime = FPS/4;
+
+
     int gamestart = 0;
     int playerdirectionx = 1;
 
@@ -270,20 +291,14 @@ public:
     void idle(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidle)
     {
 
-        if (jumptime == 0 && attacking ==0 &&sliding ==0)
+        if (jumptime == 0 && attacking ==0 &&sliding ==0 &&crouching ==0)
         {
 
             if (walking == 0 && running == 0)
             {
                 *knighttex = knightidle;
-                add = (1 / knight->nsprites) * (int)((framenumber * knight->speed * knight->nsprites) / FPS);
-                
-                if (playerdirectionx == -1)
-                    add = 1 - add;
-
-                add1 = add - 0.1f;
                 knight->add1 = 0.0f;
-                knight->add = 0.1f;
+                knight->add = (double)idlewidth/(double)knightidle.width;
                 knight->addy = 0.0f;
                 knight->texdirectionx = playerdirectionx;
             }
@@ -310,17 +325,14 @@ public:
                 {
                     playerdirectionx = 1;
                     running = 1;
+                    knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
                 }
                 else
                 {
                     playerdirectionx = -1;
                     running = -1;
+                    knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
                 }
-                if (running == 1)
-                   knight->settranform(0.0f, glm::vec3(runspeed * deltatime, 0.0f, 0.0f));
-
-                else if (running == -1)
-                   knight->settranform(0.0f, glm::vec3(-runspeed * deltatime, 0.0f, 0.0f));
 
                 *knighttex = knightrun;
                 dynamicspritespacecont(knight, &runnumber1, &runnumber, &runframenumber, runanispeed, FPS, &runsumx, &runsumy, playerdirectionx, knightrun.width, knightrun.height, runx, runy, running, runspritesno);
@@ -341,7 +353,6 @@ public:
                 runnumber = 0;
                 runframenumber = 0;
                 runnumber1 = 0;
-                running = 0;
             }
             else
             {
@@ -355,7 +366,7 @@ public:
 
     void walk(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightwalk, int walkkeyright = NULL,int walkkeyleft = NULL, int walkkey2 = NULL)
     {
-        if (jumping == 0 && attacking == 0 && sliding == 0 && falling ==0)
+        if (jumping == 0 && attacking == 0 && sliding == 0 && falling ==0 &&crouching ==0)
         {
             if ((glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS) ||(glfwGetKey(window, walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS))
             {
@@ -372,18 +383,14 @@ public:
                 {
                     playerdirectionx = 1;
                     walking = 1;
+                    knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
                 }
                 else if(glfwGetKey(window,walkkeyleft) ==GLFW_PRESS && glfwGetKey(window,walkkey2) == GLFW_PRESS)
                 {
                     playerdirectionx = -1;
                     walking = -1;
-                }
-                if (walking == 1)
-                    knight->settranform(0.0f, glm::vec3(walkspeed * deltatime, 0.0f, 0.0f));
-
-                else if (walking == -1)
                     knight->settranform(0.0f, glm::vec3(-walkspeed * deltatime, 0.0f, 0.0f));
-
+                }
                 *knighttex = knightwalk;
                 dynamicspritespacecont(knight, &walknumber1, &walknumber, &walkframenumber, walkanispeed, FPS, &walksumx, &walksumy, playerdirectionx, knightwalk.width, knightwalk.height, walkx, walky, walking, walkspritesno);
 
@@ -403,7 +410,6 @@ public:
                 walknumber = 0;
                 walkframenumber = 0;
                 walknumber1 = 0;
-                walking = 0;
             }
             else
             {
@@ -436,9 +442,7 @@ public:
                 }
                 else if (walking != 0)
                 {                    
-                    beforejump = activity::WALKING;
-                    
-                    
+                    beforejump = activity::WALKING;                    
                     walkframenumber = 0;
                     walking = 0;
 
@@ -460,18 +464,22 @@ public:
                 {
                     if (beforejump == activity::RUNNING)
                     {
-                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
-                        beforejump = activity::NONE;
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump1widthb- (double)jump1widtha)*jumptexwidth) / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
                         runnumber = 0;
                         runnumber1 = 0;
-
+                        beforejump = activity::NONE;
                     }
                     else if (beforejump == activity::WALKING)
                     {
-                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump1widthb - (double)jump1widtha)*jumptexwidth) / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
                         walknumber = 0;
                         walknumber1 = 0;
                         beforejump = activity::NONE;
+                    }
+                    else
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump1widthb - (double)jump1widtha) * jumptexwidth) / (double)idlewidth, 1.0f, 1.0f));
+
                     }
                 }
 
@@ -479,6 +487,7 @@ public:
                 jumping = 1;
                 add = jump1widthb;
                 add1 = jump1widtha;
+                playerdirectionx = 1;
                 knight->add1 = add1;
 
                 knight->add = add;
@@ -494,21 +503,25 @@ public:
                 {
                     if (beforejump == activity::RUNNING)
                     {
-                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
-                        beforejump = activity::NONE;
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump2widthb - (double)jump2widtha)* (double)jumptexwidth) / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
                         runnumber = 0;
                         runnumber1 = 0;
-
+                        beforejump = activity::NONE;
                     }
                     else if (beforejump == activity::WALKING)
                     {
-                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump2widthb - (double)jump2widtha) * (double)jumptexwidth) / (double)walkx[walknumber], (double)idleheight / (double)walky[walknumber], 1.0f));
                         walknumber = 0;
-                        walknumber1 = 0;
                         beforejump = activity::NONE;
+                        walknumber1 = 0;
+                    }
+                    else
+                    {
+                        knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)(((double)jump2widthb - (double)jump2widtha) * (double)jumptexwidth) / idlewidth, (double)idleheight / (double)idleheight, 1.0f));
                     }
                 }
                 jumping = 2;
+                playerdirectionx = -1;
                 add = jump2widthb;
                 add1 = jump2widtha;
                 knight->add1 = add1;
@@ -552,13 +565,6 @@ public:
         
         if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1 && walking ==0)
         {
-            
-            if (attacking == 0)
-            {
-                attackframeno = 0;
-                attsumx = 0;
-                attsumy = 0;
-            }
             if (running != 0)
             {
                 knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)runx[runnumber], (double)idleheight / (double)runy[runnumber], 1.0f));
@@ -576,12 +582,21 @@ public:
                 runnumber1 = 0;
                 running = 0;
             }
+            if (attacking == 0)
+            {
+             
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)attackx[0] / (double)idlewidth, (double)attacky[0] / (double)idleheight, 1.0f));
+                attackframeno = 0;
+                attsumx = 0;
+                attsumy = 0;
+            }
+            
             attackframeno++;
 
             attacking = 1;
             *knighttex = *knightattack;
 
-            dynamicspritespaceloop(knight, &attnumber1, &attnumber, &attackframeno, attanispeed, FPS, &attsumx, &attsumy, playerdirectionx, knightattack->width, knightattack->height, attackx, attacky, &attacking, attspritesno);
+            dynamicspritespaceloop(knight, &attnumber1, &attnumber, &attackframeno, attanispeed, FPS, &attsumx, &attsumy, playerdirectionx, knightattack->width, knightattack->height, attackx, attacky, &attacking, attspritesno,idlewidth,idleheight);
         }
 
     }
@@ -594,6 +609,9 @@ public:
             
             if (sliding == 0)
             {
+               
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[0] / (double)idlewidth, (double)slidey[0] / (double)idleheight, 1.0f));
+
                 slideframeno = 0;
                 slidesumy = 0;
                 slidesumx = 0;
@@ -622,9 +640,97 @@ public:
 
             knight->settranform(0, glm::vec3(playerdirectionx * slidespeed*deltatime, 0.0f, 0.0f));
 
-            dynamicspritespaceloop(knight, &slidenumber1, &slidenumber, &slideframeno, slideanispeed, FPS, &slidesumx, &slidesumy, playerdirectionx, knightslide.width, knightslide.height, slidex, slidey, &sliding, slidespritesno);
+            dynamicspritespaceloop(knight, &slidenumber1, &slidenumber, &slideframeno, slideanispeed, FPS, &slidesumx, &slidesumy, playerdirectionx, knightslide.width, knightslide.height, slidex, slidey, &sliding, slidespritesno,idlewidth,idleheight);
         }
     };
+
+    void crouch(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightcrouchidle,objecttexture knightcrouchmoving, int crouchkey = NULL,int crouchkeyright =NULL,int crouchkeyleft = NULL)
+    {
+        crouchtoggletime -= 1.0f;
+        if (glfwGetKey(window, crouchkey) == GLFW_PRESS)
+        {
+            if (crouching == 1 &&crouchtoggletime <0)
+            {
+                crouching = 0;
+                //knight->settranform(0.0f, glm::vec3(0.0f, knight->length1.y / 2, 0.0f));
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)crouchidlewidth,  (double)idleheight/ (double)crouchidleheight , 1.0f));
+                crouchtoggletime = FPS/4;
+               
+            }
+            else if (crouching == 0 &&crouchtoggletime <0)
+            {
+                crouching = 1;
+                knight->settranform(0.0f, glm::vec3(0.0f, -((double)knight->length1.y*(1 - ((double)crouchidleheight / (double)idleheight))), 0.0f));
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)crouchidlewidth / (double)idlewidth, (double)crouchidleheight / (double)idleheight, 1.0f));
+                crouchtoggletime = FPS/4;
+                *knighttex = knightcrouchidle;
+
+                knight->add1 = 0.0f;
+                knight->add = 1.0f;
+                //knight->addy = 0.0f;
+                knight->texdirectionx = 1;
+                
+            }
+        }
+/*
+        if (jumping == 0 && attacking == 0 && sliding == 0 && falling == 0 &&crouching ==1)
+        {
+            if (glfwGetKey(window, crouchkeyright) == GLFW_PRESS || glfwGetKey(window, crouchkeyleft) == GLFW_PRESS)
+            {
+                crouchframenumber++;
+                if (crouchmoving == 0)  //when starting to crouchmove
+                {
+                    gamestart = 1;
+                    crouchframenumber = 0;
+                    crouchsumx = 0;
+                    crouchsumy = 0;
+                }
+                if (glfwGetKey(window, crouchkeyright) == GLFW_PRESS)
+                {
+                    playerdirectionx = 1;
+                    crouchmoving = 1;
+                    knight->settranform(0.0f, glm::vec3(crouchmovspeed * deltatime, 0.0f, 0.0f));
+                }
+                else
+                {
+                    playerdirectionx = -1;
+                    crouchmoving = -1;
+                    knight->settranform(0.0f, glm::vec3(-crouchmovspeed * deltatime, 0.0f, 0.0f));
+
+                }
+
+                *knighttex = knightcrouch;
+                dynamicspritespacecont(knight, &crouchnumber1, &crouchnumber, &crouchframenumber, crouchanispeed, FPS, &crouchsumx, &crouchsumy, playerdirectionx, knightcrouch.width, knightcrouch.height, crouchx, crouchy, crouchmoving, crouchspritesno);
+            }
+
+            else if (crouchmoving == 1 || crouchmoving == -1) //when the crouchning is about to stop 
+            {
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)crouchx[crouchnumber], (double)idleheight / (double)crouchy[crouchnumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -crouchsumy / 2, 0.0f));
+
+                if (crouchmoving == 1)
+                    knight->settranform(0, glm::vec3(-crouchsumx / 2, 0.0f, 0.0f));
+
+                else if (crouchmoving == -1)
+                    knight->settranform(0, glm::vec3(crouchsumx / 2, 0.0f, 0.0f));
+
+                crouchmoving = 0;
+                crouchnumber = 0;
+                crouchframenumber = 0;
+                crouchnumber1 = 0;
+            }
+            else
+            {
+                crouchnumber = 0;
+                crouchnumber1 = 0;
+                crouchframenumber = 0;
+                crouchmoving = 0;
+            }
+        }
+        */
+
+
+    }
 
     void fall(GLFWwindow* window,objectspace* knight,int runwalkkeyleft =NULL,int runwalkkeyright =NULL)
     {
@@ -709,7 +815,7 @@ public:
             else if (sliding != 0)
             {
                
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)slidex[0] / (double)slidex[slidenumber], (double)slidey[0] / (double)slidey[slidenumber], 1.0f));
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)slidex[slidenumber], (double)idleheight / (double)slidey[slidenumber], 1.0f));
                 knight->settranform(0, glm::vec3(0.0f, -slidesumy / 2, 0.0f));
 
                 distance = slidespeed * deltatime;
@@ -747,8 +853,15 @@ public:
         {
             if (glm::distance(knight->center1.x, box->center1.x) <= ((knight->length1.x + box->length1.x) / 2)-box->length1.x/100 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y > (box->center1.y + box->length1.y/2))
             {
-               
+               if(jumping == 1)
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)(((double)jump1widthb - (double)jump1widtha) * (double)jumptexwidth), 1.0f, 1.0f));
+                   
+
+               else if(jumping ==2)
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)(((double)jump2widthb - (double)jump2widtha) * (double)jumptexwidth), 1.0f, 1.0f));
                 
+               
+
                 knight->settranform(0, glm::vec3(0.0f, -(glm::distance(knight->center1.y, box->center1.y) - (knight->length1.y + box->length1.y) / 2), 0.0f));
                 box->ontop = 1;
 
@@ -795,6 +908,13 @@ public:
         {
             if (glm::distance(knight->center1.x, box->center1.x) <= (knight->length1.x + box->length1.x) / 2 && glm::distance(knight->center1.y, box->center1.y) <= (knight->length1.y + box->length1.y) / 2 && knight->center1.y < box->center1.y)
             {
+                if (jumping == 1)
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)(((double)jump1widthb - (double)jump1widtha) * (double)jumptexwidth), 1.0f, 1.0f));
+
+
+                else if (jumping == 2)
+                    knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)(((double)jump2widthb - (double)jump2widtha) * (double)jumptexwidth), 1.0f, 1.0f));
+
                 jumping = 0;
                 jumptime = 0;
                 jumptime1 = 0;
@@ -829,7 +949,7 @@ public:
 
     objecttexture knighttex;
 
-    objecttexture knightattack = objecttexture("textures/attack1.png", 1);
+    objecttexture knightattack = objecttexture("textures/attack.png", 1);
 
     objecttexture knightjump = objecttexture("textures/jump.png", 1);
 
@@ -841,6 +961,7 @@ public:
 
     objecttexture knightwalk = objecttexture("textures/walk.png", 1);
 
+    objecttexture knightcrouchidle = objecttexture("textures/crouchidle.png", 1);
     void initialize()
     {
         knight.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
@@ -849,14 +970,18 @@ public:
         knight.addy = 0.0f;
 
          knightmovement.jumpspeedy = 0.28f;
-         knightmovement.jumpspeedx = 0.3f;
-         knightmovement.attanispeed = 1.7f;
+         knightmovement.jumpspeedx = 0.2f;
+         knightmovement.attanispeed = 2.5f;
          knightmovement.slidespeed = 0.6f;
          knightmovement.slideanispeed = 1.5f;
-         knightmovement.walkspeed = 0.25f;
-         knightmovement.walkanispeed = 1.5f;
-         knightmovement.runspeed = 0.3f;
-         knightmovement.runanispeed = 1.4f;
+         knightmovement.walkspeed = 0.15f;
+         knightmovement.walkanispeed = 1.4f;
+         knightmovement.runspeed = 0.2f;
+         knightmovement.runanispeed = 1.7f;
+         knightmovement.jumptexwidth = knightjump.width;
+         knightmovement.crouchidlewidth = knightcrouchidle.width;
+         knightmovement.crouchidleheight = knightcrouchidle.height;
+
 
          std::stringstream geek;
          std::string name;
@@ -1079,7 +1204,7 @@ public:
 
     void knightanimations(GLFWwindow *window)
     {
-
+     
         knightmovement.jump(window, &knight, &knighttex, &knightjump,GLFW_KEY_SPACE);
 
         knightmovement.attack(window, &knight, &knighttex, &knightattack, GLFW_MOUSE_BUTTON_LEFT);
@@ -1091,6 +1216,8 @@ public:
         knightmovement.walk(window, &knight, &knighttex, knightwalk, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
 
         knightmovement.run(window, &knight, &knighttex, knightrun, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
+
+        knightmovement.crouch(window, &knight, &knighttex,knightcrouchidle,knightrun, GLFW_KEY_C, GLFW_KEY_D, GLFW_KEY_A);
 
         knightmovement.idle(window, &knight, &knighttex, knightidle); //always put this in last
     }
@@ -1117,9 +1244,9 @@ public:
     
     objectspace bg2;
 
-    objectspace container[13];
+    objectspace container[15];
 
-    int containerno = 13; //when adding new containers do comment the game.getmatrix() function for one time
+    int containerno = 15; //when adding new containers do comment the game.getmatrix() function for one time
 
     objectspace coins[4];
 
@@ -1305,7 +1432,7 @@ public:
 
         knightclass.knight.readdata("knight", &file2);
 
-        for (int i = 0; i < containerno; i++)
+        for (int i = 0; i <containerno; i++)
         {
          container[i].readdata("cont", &file2, i);
         }
@@ -1319,7 +1446,7 @@ public:
         slime.readdata("slime", &file2);
 
         file2.close();
-        
+       
     }
     
     void slidebackground(GLFWwindow* window)    

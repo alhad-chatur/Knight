@@ -85,8 +85,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\ajink\source\repos\Knight\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\ajink\source\repos\Knight\libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\alhad\source\repos\Knight2\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\alhad\source\repos\Knight2\libraries;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -138,13 +138,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;irrklang.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
@@ -153,12 +154,60 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="attacksprite.fs" />
-    <None Include="attacksprite.vs" />
+    <None Include="attacksprite.fs">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <FileType>Document</FileType>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+      <DeploymentContent>false</DeploymentContent>
+    </None>
+    <None Include="attacksprite.vs">
+      <DeploymentContent>false</DeploymentContent>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basic.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Shader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="bitmap1.bmp" />
+    <Image Include="textures\arrow.png" />
+    <Image Include="textures\attack1.png" />
+    <Image Include="textures\bg.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </Image>
+    <Image Include="textures\coins.png">
+      <DeploymentContent>false</DeploymentContent>
+    </Image>
+    <Image Include="textures\container.jpg" />
+    <Image Include="textures\crouchidle.png" />
+    <Image Include="textures\dead.png" />
+    <Image Include="textures\EXIT.png">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Image>
+    <Image Include="textures\grass.png" />
+    <Image Include="textures\idle.png" />
+    <Image Include="textures\jump.png" />
+    <Image Include="textures\jumpattack.png" />
+    <Image Include="textures\kneed.png" />
+    <Image Include="textures\knightattack.png" />
+    <Image Include="textures\level0.png" />
+    <Image Include="textures\level00.png" />
+    <Image Include="textures\OPTIONS.png" />
+    <Image Include="textures\RESTART.png" />
+    <Image Include="textures\RESUME.png" />
+    <Image Include="textures\run.png" />
+    <Image Include="textures\slide.png" />
+    <Image Include="textures\slide1.png" />
+    <Image Include="textures\slimedie.png" />
+    <Image Include="textures\slimehurt.png" />
+    <Image Include="textures\slimeidle.png" />
+    <Image Include="textures\START.png" />
+    <Image Include="textures\walk.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Knight.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

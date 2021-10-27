@@ -37,5 +37,99 @@
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="textures\arrow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\attack1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\bg.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\coins.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\container.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\crouchidle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\dead.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\EXIT.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\grass.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\idle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\jump.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\jumpattack.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\kneed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\knightattack.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\level00.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\level0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\OPTIONS.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\RESTART.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\RESUME.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\run.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\slide.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\slide1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\slimedie.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\slimehurt.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\slimeidle.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\START.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="textures\walk.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Knight.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
