@@ -172,8 +172,6 @@ private:
 public:
     int idlewidth;
     int idleheight;
-    int crouchidlewidth;
-    int crouchidleheight;
 
 
     //related to jumping
@@ -262,20 +260,20 @@ public:
     float slidespeed;
 
 
-    //related to crouching
-    int crouching = 0;
-    int crouchmoving = 0;
-    float crouchmovspeed;
-    float crouchx[100];
-    float crouchy[100];
-    int crouchnumber = 0;
-    int crouchnumber1 = 0;
-    float crouchanispeed;
-    int crouchspritesno;
-    float crouchsumx = 0;
-    float crouchsumy = 0;
-    unsigned int crouchframenumber = 0;
-    float crouchtoggletime = FPS/4;
+    //related to proneing
+    int proneing = 0;
+    int pronemoving = 0;
+    float pronemovspeed;
+    float pronex[100];
+    float proney[100];
+    int pronenumber = 0;
+    int pronenumber1 = 0;
+    float proneanispeed;
+    int pronespritesno;
+    float pronesumx = 0;
+    float pronesumy = 0;
+    unsigned int proneframenumber = 0;
+    float pronetoggletime = FPS/4;
 
 
     int gamestart = 0;
@@ -291,7 +289,7 @@ public:
     void idle(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightidle)
     {
 
-        if (jumptime == 0 && attacking ==0 &&sliding ==0 &&crouching ==0)
+        if (jumptime == 0 && attacking ==0 &&sliding ==0 &&proneing ==0)
         {
 
             if (walking == 0 && running == 0)
@@ -366,7 +364,7 @@ public:
 
     void walk(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightwalk, int walkkeyright = NULL,int walkkeyleft = NULL, int walkkey2 = NULL)
     {
-        if (jumping == 0 && attacking == 0 && sliding == 0 && falling ==0 &&crouching ==0)
+        if (jumping == 0 && attacking == 0 && sliding == 0 && falling ==0 &&proneing ==0)
         {
             if ((glfwGetKey(window, walkkeyright) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS) ||(glfwGetKey(window, walkkeyleft) == GLFW_PRESS && glfwGetKey(window, walkkey2) == GLFW_PRESS))
             {
@@ -563,7 +561,7 @@ public:
     void attack(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture* knightattack,int attackkey = NULL)
     {
         
-        if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1 && walking ==0)
+        if (((glfwGetMouseButton(window, attackkey) == GLFW_PRESS && attacking == 0) || attacking == 1) && gamestart ==1 && walking ==0&&sliding == 0 )
         {
             if (running != 0)
             {
@@ -604,7 +602,7 @@ public:
     void slide(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightslide,int slidekey = NULL)
     {
         
-        if (((glfwGetKey(window,slidekey) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1 && jumping ==0 && walking ==0)
+        if (((glfwGetKey(window,slidekey) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1 && jumping ==0 && walking ==0 &&attacking == 0)
         {
             
             if (sliding == 0)
@@ -644,87 +642,87 @@ public:
         }
     };
 
-    void crouch(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightcrouchidle,objecttexture knightcrouchmoving, int crouchkey = NULL,int crouchkeyright =NULL,int crouchkeyleft = NULL)
+    void prone(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightprone, int pronekey = NULL,int pronekeyright =NULL,int pronekeyleft = NULL)
     {
-        crouchtoggletime -= 1.0f;
-        if (glfwGetKey(window, crouchkey) == GLFW_PRESS)
+        pronetoggletime -= 1.0f;
+        if (glfwGetKey(window, pronekey) == GLFW_PRESS)
         {
-            if (crouching == 1 &&crouchtoggletime <0)
+            if (proneing == 1 &&pronetoggletime <0)
             {
-                crouching = 0;
+                proneing = 0;
                 //knight->settranform(0.0f, glm::vec3(0.0f, knight->length1.y / 2, 0.0f));
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)crouchidlewidth,  (double)idleheight/ (double)crouchidleheight , 1.0f));
-                crouchtoggletime = FPS/4;
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)pronex[0],  (double)idleheight/ (double)proney[0] , 1.0f));
+                pronetoggletime = FPS/4;
                
             }
-            else if (crouching == 0 &&crouchtoggletime <0)
+            else if (proneing == 0 &&pronetoggletime <0)
             {
-                crouching = 1;
-                knight->settranform(0.0f, glm::vec3(0.0f, -((double)knight->length1.y*(1 - ((double)crouchidleheight / (double)idleheight))), 0.0f));
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)crouchidlewidth / (double)idlewidth, (double)crouchidleheight / (double)idleheight, 1.0f));
-                crouchtoggletime = FPS/4;
-                *knighttex = knightcrouchidle;
+                proneing = 1;
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)pronex[0] / (double)idlewidth, (double)proney[0] / (double)idleheight, 1.0f));
+                knight->settranform(0.0f, glm::vec3(0.0f, -((double)knight->length1.y*(1 - ((double)proney[0] / (double)idleheight))), 0.0f));
+               pronetoggletime = FPS/4;
+                *knighttex = knightprone;
 
                 knight->add1 = 0.0f;
-                knight->add = 1.0f;
-                //knight->addy = 0.0f;
+                knight->add = (double)pronex[0]/(double)knightprone.width;
+                knight->addy =1 - ((double)proney[0] / (double)knightprone.height);;
                 knight->texdirectionx = 1;
                 
             }
         }
 /*
-        if (jumping == 0 && attacking == 0 && sliding == 0 && falling == 0 &&crouching ==1)
+        if (jumping == 0 && attacking == 0 && sliding == 0 && falling == 0 &&proneing ==1)
         {
-            if (glfwGetKey(window, crouchkeyright) == GLFW_PRESS || glfwGetKey(window, crouchkeyleft) == GLFW_PRESS)
+            if (glfwGetKey(window, pronekeyright) == GLFW_PRESS || glfwGetKey(window, pronekeyleft) == GLFW_PRESS)
             {
-                crouchframenumber++;
-                if (crouchmoving == 0)  //when starting to crouchmove
+                proneframenumber++;
+                if (pronemoving == 0)  //when starting to pronemove
                 {
                     gamestart = 1;
-                    crouchframenumber = 0;
-                    crouchsumx = 0;
-                    crouchsumy = 0;
+                    proneframenumber = 0;
+                    pronesumx = 0;
+                    pronesumy = 0;
                 }
-                if (glfwGetKey(window, crouchkeyright) == GLFW_PRESS)
+                if (glfwGetKey(window, pronekeyright) == GLFW_PRESS)
                 {
                     playerdirectionx = 1;
-                    crouchmoving = 1;
-                    knight->settranform(0.0f, glm::vec3(crouchmovspeed * deltatime, 0.0f, 0.0f));
+                    pronemoving = 1;
+                    knight->settranform(0.0f, glm::vec3(pronemovspeed * deltatime, 0.0f, 0.0f));
                 }
                 else
                 {
                     playerdirectionx = -1;
-                    crouchmoving = -1;
-                    knight->settranform(0.0f, glm::vec3(-crouchmovspeed * deltatime, 0.0f, 0.0f));
+                    pronemoving = -1;
+                    knight->settranform(0.0f, glm::vec3(-pronemovspeed * deltatime, 0.0f, 0.0f));
 
                 }
 
-                *knighttex = knightcrouch;
-                dynamicspritespacecont(knight, &crouchnumber1, &crouchnumber, &crouchframenumber, crouchanispeed, FPS, &crouchsumx, &crouchsumy, playerdirectionx, knightcrouch.width, knightcrouch.height, crouchx, crouchy, crouchmoving, crouchspritesno);
+                *knighttex = knightprone;
+                dynamicspritespacecont(knight, &pronenumber1, &pronenumber, &proneframenumber, proneanispeed, FPS, &pronesumx, &pronesumy, playerdirectionx, knightprone.width, knightprone.height, pronex, proney, pronemoving, pronespritesno);
             }
 
-            else if (crouchmoving == 1 || crouchmoving == -1) //when the crouchning is about to stop 
+            else if (pronemoving == 1 || pronemoving == -1) //when the pronening is about to stop 
             {
-                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)crouchx[crouchnumber], (double)idleheight / (double)crouchy[crouchnumber], 1.0f));
-                knight->settranform(0, glm::vec3(0.0f, -crouchsumy / 2, 0.0f));
+                knight->changemodel(0, glm::vec3(0.0f), glm::vec3((double)idlewidth / (double)pronex[pronenumber], (double)idleheight / (double)proney[pronenumber], 1.0f));
+                knight->settranform(0, glm::vec3(0.0f, -pronesumy / 2, 0.0f));
 
-                if (crouchmoving == 1)
-                    knight->settranform(0, glm::vec3(-crouchsumx / 2, 0.0f, 0.0f));
+                if (pronemoving == 1)
+                    knight->settranform(0, glm::vec3(-pronesumx / 2, 0.0f, 0.0f));
 
-                else if (crouchmoving == -1)
-                    knight->settranform(0, glm::vec3(crouchsumx / 2, 0.0f, 0.0f));
+                else if (pronemoving == -1)
+                    knight->settranform(0, glm::vec3(pronesumx / 2, 0.0f, 0.0f));
 
-                crouchmoving = 0;
-                crouchnumber = 0;
-                crouchframenumber = 0;
-                crouchnumber1 = 0;
+                pronemoving = 0;
+                pronenumber = 0;
+                proneframenumber = 0;
+                pronenumber1 = 0;
             }
             else
             {
-                crouchnumber = 0;
-                crouchnumber1 = 0;
-                crouchframenumber = 0;
-                crouchmoving = 0;
+                pronenumber = 0;
+                pronenumber1 = 0;
+                proneframenumber = 0;
+                pronemoving = 0;
             }
         }
         */
@@ -961,7 +959,7 @@ public:
 
     objecttexture knightwalk = objecttexture("textures/walk.png", 1);
 
-    objecttexture knightcrouchidle = objecttexture("textures/crouchidle.png", 1);
+    objecttexture knightprone = objecttexture("textures/prone.png", 1);
     void initialize()
     {
         knight.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
@@ -979,9 +977,6 @@ public:
          knightmovement.runspeed = 0.2f;
          knightmovement.runanispeed = 1.7f;
          knightmovement.jumptexwidth = knightjump.width;
-         knightmovement.crouchidlewidth = knightcrouchidle.width;
-         knightmovement.crouchidleheight = knightcrouchidle.height;
-
 
          std::stringstream geek;
          std::string name;
@@ -1124,6 +1119,43 @@ public:
              geek >> temp;
              knightmovement.walky[i] = temp * knightwalk.height;
          }
+
+         //for proning
+
+         for (int i = 0; i > -1; i++)
+         {
+             std::getline(file, name);
+
+             if (name == "prone")
+             {
+                 break;
+             }
+
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         geek >> knightmovement.pronespritesno;
+
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.pronespritesno; i++)
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.pronex[i] = temp * knightprone.width;
+         }
+         std::getline(file, name);
+         geek = (std::stringstream)name;
+
+         for (int i = 0; i < knightmovement.pronespritesno; i++)
+         {
+             float temp = 0;
+             geek >> temp;
+             knightmovement.proney[i] = temp * knightprone.height;
+         }
+
          //for idlewidth and idleheight
 
          for (int i = 0; i > -1; i++)
@@ -1217,7 +1249,7 @@ public:
 
         knightmovement.run(window, &knight, &knighttex, knightrun, GLFW_KEY_D, GLFW_KEY_A, GLFW_KEY_LEFT_CONTROL);
 
-        knightmovement.crouch(window, &knight, &knighttex,knightcrouchidle,knightrun, GLFW_KEY_C, GLFW_KEY_D, GLFW_KEY_A);
+        knightmovement.prone(window, &knight, &knighttex,knightprone, GLFW_KEY_C, GLFW_KEY_D, GLFW_KEY_A);
 
         knightmovement.idle(window, &knight, &knighttex, knightidle); //always put this in last
     }
@@ -1270,7 +1302,7 @@ public:
 
 
     //related to background moving
-    float slidebgspeed = 0.01f;
+    float slidebgspeed = 0.003f;
 
     //general
     int changecursor = 0;
@@ -1451,7 +1483,7 @@ public:
     
     void slidebackground(GLFWwindow* window)    
     {
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || knightclass.knight.center1.x>0.9f)
         {
             if (knightclass.knightmovement.gamestart == 1)
             {
@@ -1493,7 +1525,7 @@ public:
             }
         }
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || knightclass.knight.center1.x<-0.9f)
         {
             if (knightclass.knightmovement.gamestart == 1)
             {
