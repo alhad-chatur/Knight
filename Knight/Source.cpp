@@ -1302,7 +1302,7 @@ public:
 
 
     //related to background moving
-    float slidebgspeed = 0.003f;
+    float slidebgspeed = 0.03f;
 
     //general
     int changecursor = 0;
@@ -1478,7 +1478,7 @@ public:
     
     void slidebackground(GLFWwindow* window)    
     {
-        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS || knightclass.knight.center1.x>0.9f)
+        if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS )
         {
             if (knightclass.knightmovement.gamestart == 1)
             {
@@ -1520,7 +1520,7 @@ public:
             }
         }
 
-        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS || knightclass.knight.center1.x<-0.9f)
+        if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         {
             if (knightclass.knightmovement.gamestart == 1)
             {

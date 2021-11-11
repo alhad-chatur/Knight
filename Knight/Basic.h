@@ -81,7 +81,11 @@ class objectspace
 public:
     unsigned int vao, vbo, ebo;
     Shader shader;
-    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 modeltranslate = glm::mat4(1.0f);
+    glm::mat4 modelscale = glm::mat4(1.0f);
+    glm::mat4 modelrotate = glm::mat4(1.0f);
+
+
     glm::mat4 viewtranslate = glm::mat4(1.0f);
     glm::mat4 viewscale = glm::mat4(1.0f);
     glm::mat4 viewrotate = glm::mat4(1.0f);
@@ -155,7 +159,10 @@ public:
         glEnableVertexAttribArray(1);
 
         shader.use();
-        shader.setMat4("model", model);
+        shader.setMat4("modelscale", modelscale);
+        shader.setMat4("modeltranslate", modeltranslate);
+        shader.setMat4("modelrotate", modelrotate);
+
         shader.setMat4("viewtranslate", viewtranslate);
         shader.setMat4("viewscale", viewscale);
         shader.setMat4("viewrotate", viewrotate);
@@ -169,23 +176,22 @@ public:
 
     }
     
-
     void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
         
-        center = glm::translate(model,translate) * center;
+        center = glm::translate(modeltranslate,translate) * center;
         center1 = center;
-        model = glm::translate(model, translate);
+        modeltranslate = glm::translate(modeltranslate, translate);
         
-        model = glm::rotate(model, glm::radians(rotateangle), rotateaxis);
+        modelrotate = glm::rotate(modelrotate, glm::radians(rotateangle), rotateaxis);
         if (scalefactor == 0)
         {
-            model = glm::scale(model, scale);
+            modelscale = glm::scale(modelscale, scale);
             length = glm::scale(glm::mat4(1.0f), scale) * length;
         }
         else
         {
-            model = glm::scale(model, glm::vec3(scalefactor));
+            modelscale = glm::scale(modelscale, glm::vec3(scalefactor));
             length = scalefactor * length;
         }
         length1 = length;
@@ -194,16 +200,16 @@ public:
 
     void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
-        model = glm::translate(model, translate);
+        modeltranslate = glm::translate(modeltranslate, translate);
         newmodelscale= glm::vec4(scale, 1.0f)*newmodelscale;
 
         length1 = length *newmodelscale;
 
-        model = glm::rotate(model, glm::radians(rotateangle), rotateaxis);
+        modelrotate = glm::rotate(modelrotate, glm::radians(rotateangle), rotateaxis);
         if (scalefactor == 0)
-            model = glm::scale(model, scale);
+            modelscale = glm::scale(modelscale, scale);
         else
-            model = glm::scale(model, glm::vec3(scalefactor));
+            modelscale = glm::scale(modelscale, glm::vec3(scalefactor));
 
     }
     //is basically used for scaling purposes
@@ -232,7 +238,9 @@ public:
     {
         shader.setInt("texture1", 0);
         shader.setMat4("transform", transform);
-        shader.setMat4("model", model);
+        shader.setMat4("modelscale", modelscale);
+        shader.setMat4("modeltranslate", modeltranslate);
+        shader.setMat4("modelrotate", modelrotate);
         shader.setMat4("viewtranslate", viewtranslate);
         shader.setMat4("viewscale", viewscale);
         shader.setMat4("viewrotate", viewrotate);
@@ -249,11 +257,16 @@ public:
     
     void writedata(const char *spritename,std::ofstream *spritedatawrite,int arrayno =-1)
     {
+        if (arrayno == -1)
+            *spritedatawrite << spritename << "\n";
+
+        else
+            *spritedatawrite << spritename << arrayno << "\n";
+        
         glm::mat4 temp;
         float tempa[16];
 
-        glm::mat4 view = viewtranslate * viewscale * viewrotate;
-        temp = view*model;                                          //the only reason for this is to set the camera in place where we left in the last runtime
+        temp = viewtranslate*modeltranslate;                                          //the only reason for this is to set the camera in place where we left in the last runtime
         for (int i = 0; i <= 3; i++)
         {
             for (int j = 0; j <= 3; j++)
@@ -262,12 +275,7 @@ public:
             }
 
         }
-        if (arrayno == -1)
-            *spritedatawrite << spritename << "\n";
-
-        else
-            *spritedatawrite << spritename << arrayno << "\n";
-
+        
         for (int i = 0; i <= 15; i++)
         {
             *spritedatawrite << tempa[i] << "\t";
@@ -276,6 +284,25 @@ public:
         *spritedatawrite << "\n";
 
         
+        temp = viewscale*modelscale;                                          //the only reason for this is to set the camera in place where we left in the last runtime
+        for (int i = 0; i <= 3; i++)
+        {
+            for (int j = 0; j <= 3; j++)
+            {
+                tempa[(i * 4) + j] = temp[i][j];
+            }
+
+        }
+
+        for (int i = 0; i <= 15; i++)
+        {
+            *spritedatawrite << tempa[i] << "\t";
+        };
+
+        *spritedatawrite << "\n";
+
+
+
         *spritedatawrite << viewtranslatevec.x << "\t";
         *spritedatawrite << viewtranslatevec.y << "\t";
         *spritedatawrite << viewtranslatevec.z << "\t";
@@ -315,6 +342,7 @@ public:
                 break;
             };
         }
+
         std::getline(*file, line);
         geek = std::stringstream(line);
         for (int i = 0; i <= 15; i++)
@@ -330,7 +358,24 @@ public:
             }
 
         };
-        model = temp2;
+       modeltranslate = temp2;
+
+       std::getline(*file, line);
+       geek = std::stringstream(line);
+       for (int i = 0; i <= 15; i++)
+       {
+           geek >> tempa2[i];
+       }
+
+       for (int i = 0; i <= 3; i++)
+       {
+           for (int j = 0; j <= 3; j++)
+           {
+               temp2[i][j] = tempa2[(i * 4) + j];
+           }
+
+       };
+       modelscale = temp2;
 
         std::getline(*file, line);
         geek = std::stringstream(line);

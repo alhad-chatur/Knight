@@ -4,7 +4,10 @@ layout (location = 1) in vec2 aTexCoord;
 
 out vec2 TexCoord;
 
-uniform mat4 model;
+uniform mat4 modelscale;
+uniform mat4 modeltranslate;
+uniform mat4 modelrotate;
+
 uniform float add;
 uniform float addy;
 uniform mat4 viewtranslate;
@@ -19,6 +22,7 @@ uniform int nrows =1;
 void main()
 {
 	mat4 view = viewtranslate*viewscale*viewrotate;
+	mat4 model = modeltranslate*modelscale*modelrotate;
 
 	vec4 pos = transform*view*model*vec4(aPos,1.0);
 
