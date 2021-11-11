@@ -86,8 +86,8 @@ public:
     glm::mat4 viewscale = glm::mat4(1.0f);
     glm::mat4 viewrotate = glm::mat4(1.0f);
     glm::mat4 transform = glm::mat4(1.0f);
-    float vertex1[20];
-    glm::vec4 center, length, center1,length1;
+    float vertex1[20];                                    //just the vertices
+    glm::vec4 center, length, center1,length1;           //center1 and length1 changes during the runtime while center and length remains same during the whole runtime
     float nsprites = 10;
     glm::vec3 viewtranslatevec = glm::vec3(0.0f); //used to store the data in the file for changing the center
     glm::vec4 newmodelscale = glm::vec4(1.0f); //used to store the data in the file for changing the size of sprite
@@ -169,6 +169,7 @@ public:
 
     }
     
+
     void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
         
@@ -189,7 +190,8 @@ public:
         }
         length1 = length;
     }
-    
+    //sets the initial model matrix configured using the default values
+
     void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
         model = glm::translate(model, translate);
@@ -204,6 +206,7 @@ public:
             model = glm::scale(model, glm::vec3(scalefactor));
 
     }
+    //is basically used for scaling purposes
     
     void setview(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
@@ -223,7 +226,8 @@ public:
             length = scalefactor * length;
         }
     }
-    
+    //used to do permanent changes which are stored in the file and mainly for translation purposes
+
     void drawquad()
     {
         shader.setInt("texture1", 0);
@@ -249,7 +253,7 @@ public:
         float tempa[16];
 
         glm::mat4 view = viewtranslate * viewscale * viewrotate;
-        temp = view*model;
+        temp = view*model;                                          //the only reason for this is to set the camera in place where we left in the last runtime
         for (int i = 0; i <= 3; i++)
         {
             for (int j = 0; j <= 3; j++)
@@ -326,7 +330,6 @@ public:
             }
 
         };
-        model = glm::mat4(1.0f);
         model = temp2;
 
         std::getline(*file, line);

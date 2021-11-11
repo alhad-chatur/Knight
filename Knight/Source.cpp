@@ -23,8 +23,8 @@ unsigned int indices[10] = {
     1, 2, 3  // second triangle
 };
 
-int scrwidth = 1280;
-int scrheight = 1024;
+int scrwidth = 1920;
+int scrheight = 1080;
 int FPS = 60;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
@@ -602,7 +602,7 @@ public:
     void slide(GLFWwindow* window, objectspace* knight, objecttexture* knighttex, objecttexture knightslide,int slidekey = NULL)
     {
         
-        if (((glfwGetKey(window,slidekey) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1 && jumping ==0 && walking ==0 &&attacking == 0)
+        if (((glfwGetKey(window,slidekey) == GLFW_PRESS && sliding == 0) || sliding == 1) && gamestart == 1 && jumping ==0 && walking ==0 &&attacking == 0 && falling ==0)
         {
             
             if (sliding == 0)
@@ -1336,11 +1336,9 @@ public:
     void initialize()
     {
         bg.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        bg.model = glm::mat4(1.0f);
         bg.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
 
         bg2.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        bg2.model = glm::mat4(1.0f);
         bg2.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
 
         knightclass.initialize();
@@ -1349,7 +1347,6 @@ public:
         {
 
             container[i].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-            container[i].model = glm::mat4(1.0f);
             container[i].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
         }
 
@@ -1357,12 +1354,10 @@ public:
         for (int i = 0; i < coinnumber; i++)
         {
             coins[i].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-            coins[i].model = glm::mat4(1.0f);
             coins[i].setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));
        
         }
         slime.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        slime.model = glm::mat4(1.0f);
         slime.setmodel(0.1f, glm::vec3(-0.7f, 0.7f, 0.0f));   
 
     }
