@@ -1429,6 +1429,26 @@ public:
        
     }
 
+    void mouserotate(GLFWwindow* window)
+    {
+
+        mouserotatesprite(window, &knightclass.knight, &changecursor);
+
+        for (int i = 0; i < containerno; i++)
+        {
+            if (mouserotatesprite(window, &container[i], &changecursor) == 1)
+                break;
+        }
+        for (int i = 0; i < coinnumber; i++)
+        {
+            if (mouserotatesprite(window, &coins[i], &changecursor) == 1)
+                break;
+        }
+        mouserotatesprite(window, &slime, &changecursor);
+
+
+    }
+
     void writematrix(const char* filename)
     {
         std::ofstream file(filename);
@@ -1853,6 +1873,26 @@ public:
         }
     }
 
+    void mouserotate(GLFWwindow* window)
+    {
+        if (menustate == 0)
+        {
+            for (int i = 0; i < containerno; i++)
+            {
+                mouserotatesprite(window, &container[i], &changecursor);
+            }
+            mouserotatesprite(window, &pointer, &changecursor);
+        }
+        else if (menustate == 1)
+        {
+            for (int i = 0; i < containerno1; i++)
+            {
+                mouserotatesprite(window, &container1[i], &changecursor);
+            }
+            mouserotatesprite(window, &pointer1, &changecursor);
+        }
+    }
+
     void mouseresize(GLFWwindow* window)
     {
         if (menustate == 0)
@@ -2100,6 +2140,14 @@ public:
                 if (level0.changecursor == 0)
                     glfwSetCursor(window, NULL);
             }
+            else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && level0.knightclass.knightmovement.gamestart == 0) //Change Position Mode only before moving any character
+            {
+                level0.transform();
+                level0.mouserotate(window);
+
+                if (level0.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
             else //normal mode
             {
                 level0.transform();
@@ -2129,6 +2177,13 @@ public:
             else if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
             {
                 menu.mouseresize(window);  
+
+                if (menu.changecursor == 0)
+                    glfwSetCursor(window, NULL);
+            }
+            else if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+            {
+                menu.mouserotate(window);
 
                 if (menu.changecursor == 0)
                     glfwSetCursor(window, NULL);

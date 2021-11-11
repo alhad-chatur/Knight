@@ -176,7 +176,7 @@ public:
 
     }
     
-    void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
+    void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 360)
     {
         
         center = glm::translate(modeltranslate,translate) * center;
@@ -198,7 +198,7 @@ public:
     }
     //sets the initial model matrix configured using the default values
 
-    void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
+    void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 360)
     {
         modeltranslate = glm::translate(modeltranslate, translate);
         newmodelscale= glm::vec4(scale, 1.0f)*newmodelscale;
@@ -503,4 +503,36 @@ void mouseresizesprite(GLFWwindow* window,objectspace* sprite,int* changecursor)
             }
         }
     }
+}
+
+int mouserotatesprite(GLFWwindow* window, objectspace* sprite, int* changecursor)
+{
+
+    GLFWcursor* rotate = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+
+    int windowx, windowy;
+    double xmouse, ymouse;
+
+    glfwGetCursorPos(window, &xmouse, &ymouse);
+
+    glfwGetWindowSize(window, &windowx, &windowy);
+
+    xmouse = (2 * xmouse / windowx) - 1;
+    ymouse = -((2 * (ymouse) / windowy) - 1);
+
+    glm::vec4 mousecoord = glm::vec4(xmouse, ymouse, 0.0f,1.0f);
+
+
+    if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), sprite->center1) <= 0.1f)
+    {
+        glfwSetCursor(window, rotate);
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+        {
+            sprite->changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::dot(sprite->center1 - mousecoord, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
+        }
+        *changecursor = *changecursor + 1;
+        return 1;
+    }
+    else
+        return 0;
 }

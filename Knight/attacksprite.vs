@@ -22,7 +22,7 @@ uniform int nrows =1;
 void main()
 {
 	mat4 view = viewtranslate*viewscale*viewrotate;
-	mat4 model = modeltranslate*modelscale*modelrotate;
+	mat4 model = modeltranslate*modelrotate*modelscale;
 
 	vec4 pos = transform*view*model*vec4(aPos,1.0);
 
