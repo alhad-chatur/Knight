@@ -103,6 +103,7 @@ public:
     float addy = 0.0f;
     float texdirectionx = 1;
     float speed = 1.3f;
+    float rotationangle = 0; //reference taken from x axis
 
 
     void intitialize(float vertices[], unsigned int indices[], const char* vertexshader = "bg.vs", const char* fragmentshader = "bg.fs",int texdirection =1)
@@ -176,7 +177,7 @@ public:
 
     }
     
-    void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 360)
+    void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, -1.0f), float rotateangle = 0)
     {
         
         center = glm::translate(modeltranslate,translate) * center;
@@ -198,8 +199,16 @@ public:
     }
     //sets the initial model matrix configured using the default values
 
-    void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 360)
+    void changemodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, -1.0f), float rotateangle = 0)
     {
+        rotationangle += rotateangle;
+
+        if (rotationangle > 360)
+            rotationangle = rotationangle - 360;
+
+        else if (rotationangle < -360)
+            rotationangle = rotationangle + 360;
+        
         modeltranslate = glm::translate(modeltranslate, translate);
         newmodelscale= glm::vec4(scale, 1.0f)*newmodelscale;
 
@@ -214,7 +223,7 @@ public:
     }
     //is basically used for scaling purposes
     
-    void setview(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
+    void setview(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, -1.0f), float rotateangle = 0)
     {
         viewtranslatevec += translate;
         
@@ -301,8 +310,10 @@ public:
 
         *spritedatawrite << "\n";
 
-
-
+        *spritedatawrite << rotationangle;
+        
+        *spritedatawrite << "\n";
+        
         *spritedatawrite << viewtranslatevec.x << "\t";
         *spritedatawrite << viewtranslatevec.y << "\t";
         *spritedatawrite << viewtranslatevec.z << "\t";
@@ -377,6 +388,15 @@ public:
        };
        modelscale = temp2;
 
+       std::getline(*file, line);
+       float tempangel;
+       geek = std::stringstream(line);
+       geek >> tempangel;
+       rotationangle = tempangel;
+
+       modelrotate = glm::rotate(modelrotate, glm::radians(rotationangle), glm::vec3(0.0f, 0.0f, -1.0f));
+       
+       
         std::getline(*file, line);
         geek = std::stringstream(line);
 
@@ -406,7 +426,7 @@ public:
         newmodelscale = tempscale;
     }
     
-    void settranform(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 360)
+    void settranform(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, 1.0f), float rotateangle = 0)
     {
 
         transform = glm::translate(transform, translate);
@@ -528,7 +548,7 @@ int mouserotatesprite(GLFWwindow* window, objectspace* sprite, int* changecursor
         glfwSetCursor(window, rotate);
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
         {
-            sprite->changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::dot(sprite->center1 - mousecoord, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
+            sprite->changemodel(0, glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::dot(mousecoord - sprite->center1, glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)));
         }
         *changecursor = *changecursor + 1;
         return 1;
