@@ -7,6 +7,7 @@ out vec2 TexCoord;
 uniform mat4 modelscale;
 uniform mat4 modeltranslate;
 uniform mat4 modelrotate;
+uniform float aspectratio;
 
 uniform float add;
 uniform float addy;
@@ -25,6 +26,7 @@ void main()
 	mat4 model = modeltranslate*modelrotate*modelscale;
 
 	vec4 pos = transform*view*model*vec4(aPos,1.0);
+	pos.y *=aspectratio;
 
 	gl_Position = pos;
 	

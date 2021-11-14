@@ -12,6 +12,9 @@
 #include <fstream>
 #include<sstream>
 
+float scrwidtha = 1920.0f;
+float scrheighta = 1080.0f;
+
 float modulus(float value)
 {
     if (value >= 0)
@@ -84,8 +87,6 @@ public:
     glm::mat4 modeltranslate = glm::mat4(1.0f);
     glm::mat4 modelscale = glm::mat4(1.0f);
     glm::mat4 modelrotate = glm::mat4(1.0f);
-
-
     glm::mat4 viewtranslate = glm::mat4(1.0f);
     glm::mat4 viewscale = glm::mat4(1.0f);
     glm::mat4 viewrotate = glm::mat4(1.0f);
@@ -132,6 +133,7 @@ public:
         center.y = center.y / 4;
         center.z = center.z / 4;
         center.w = 1.0f;
+        center.y *= (1920.0f / 1080.0f);
 
         center1 = center;
 
@@ -174,13 +176,14 @@ public:
         shader.setFloat("add", 1.0f);
         shader.setFloat("add1", 0.0f);
         shader.setInt("miplevel", 0);
+        shader.setFloat("aspectratio", (scrwidtha / scrheighta));
 
     }
     
     void setmodel(float scalefactor, glm::vec3 translate, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotateaxis = glm::vec3(0.0f, 0.0f, -1.0f), float rotateangle = 0)
     {
         
-        center = glm::translate(modeltranslate,translate) * center;
+        center = glm::vec4(translate,0.0f) + center;
         center1 = center;
         modeltranslate = glm::translate(modeltranslate, translate);
         
@@ -228,7 +231,7 @@ public:
         viewtranslatevec += translate;
         
         viewtranslate = glm::translate(viewtranslate, translate);
-        center1 =viewtranslate*center;
+        center1 =glm::vec4(translate,0.0f)+center1;
         viewrotate = glm::rotate(viewrotate, glm::radians(rotateangle), rotateaxis);
         if (scalefactor == 0)
         {
@@ -258,6 +261,7 @@ public:
         shader.setFloat("addy", addy);
         shader.setFloat("add", add);
         shader.setFloat("add1",add1);
+        shader.setFloat("aspectratio", (scrwidtha / scrheighta));
 
        
         glBindVertexArray(vao);
@@ -466,6 +470,7 @@ int mousetranslatesprite(GLFWwindow* window, objectspace *sprite, int* changecur
     xmouse = (2 * xmouse / windowx) - 1;
     ymouse = -((2 * (ymouse) / windowy) - 1);
 
+    ymouse *= (1080.0f / 1920.0f);//transforming it into world coordinates
 
     if (distance(glm::vec4(xmouse, ymouse, 0.0f, 1.0f), sprite->center1) <= 0.1f)
     {
@@ -497,6 +502,8 @@ void mouseresizesprite(GLFWwindow* window,objectspace* sprite,int* changecursor)
 
     xmouse = (2 * xmouse / windowx) - 1;
     ymouse = -((2 * (ymouse) / windowy) - 1);
+
+    ymouse *= (1080.0f / 1920.0f);
 
     temp = *sprite;
 
@@ -539,6 +546,8 @@ int mouserotatesprite(GLFWwindow* window, objectspace* sprite, int* changecursor
 
     xmouse = (2 * xmouse / windowx) - 1;
     ymouse = -((2 * (ymouse) / windowy) - 1);
+
+    ymouse *= (1080.0f / 1920.0f);
 
     glm::vec4 mousecoord = glm::vec4(xmouse, ymouse, 0.0f,1.0f);
 

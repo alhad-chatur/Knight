@@ -12,7 +12,7 @@
 #include<irrklang/irrKlang.h>
 
 float objvertices[100] = {
-    // positions          // colors           // texture coords
+    // positions          // texture coords
      0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
      0.5f, -0.5f, 0.0f,    1.0f, 0.0f, // bottom right
     -0.5f, -0.5f, 0.0f,    0.0f, 0.0f, // bottom left
@@ -23,8 +23,8 @@ unsigned int indices[10] = {
     1, 2, 3  // second triangle
 };
 
-int scrwidth = 1920;
-int scrheight = 1080;
+float scrwidth = 1920;
+float scrheight = 1080;
 int FPS = 60;
 
 irrklang::ISoundEngine* soundengine = irrklang::createIrrKlangDevice();
@@ -967,7 +967,7 @@ public:
         knighttex = knightidle;
         knight.addy = 0.0f;
 
-         knightmovement.jumpspeedy = 0.28f;
+         knightmovement.jumpspeedy = 0.22f;
          knightmovement.jumpspeedx = 0.2f;
          knightmovement.attanispeed = 2.5f;
          knightmovement.slidespeed = 0.6f;
@@ -1336,10 +1336,10 @@ public:
     void initialize()
     {
         bg.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        bg.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
+        bg.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 2.0f, 1.0f));
 
         bg2.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        bg2.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 3.0f, 1.0f));
+        bg2.setmodel(0, glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(6.0f, 2.0f, 1.0f));
 
         knightclass.initialize();
 
@@ -1826,31 +1826,31 @@ public:
         bg.setmodel(0, glm::vec3(0.0f, -0.75f, 0.0f), glm::vec3(20.0f, 0.5f, 1.0f));
 
         container[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[0].setmodel(0, glm::vec3(0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+        container[0].setmodel(0, glm::vec3(0.5f, 0.4f, 0.0f), glm::vec3(0.5f));
 
         container[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[1].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container[1].setmodel(0, glm::vec3(0.5f, -0.4f, 0.0f), glm::vec3(0.5f));
 
         container[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container[2].setmodel(0, glm::vec3(-0.5f, -0.4f, 0.0f), glm::vec3(0.5f));
 
         container1[0].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container1[0].setmodel(0, glm::vec3(0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container1[0].setmodel(0, glm::vec3(0.5f, -0.4f, 0.0f), glm::vec3(0.5f));
 
         container1[1].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container1[1].setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.5f));
+        container1[1].setmodel(0, glm::vec3(-0.5f, 0.4f, 0.0f), glm::vec3(0.5f));
 
         container1[2].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container1[2].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container1[2].setmodel(0, glm::vec3(-0.5f, -0.4f, 0.0f), glm::vec3(0.5f));
 
         container1[3].intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        container1[3].setmodel(0, glm::vec3(-0.5f, -0.7f, 0.0f), glm::vec3(0.5f));
+        container1[3].setmodel(0, glm::vec3(-0.5f, -0.4f, 0.0f), glm::vec3(0.5f));
 
         pointer.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        pointer.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
+        pointer.setmodel(0, glm::vec3(-0.5f, 0.4f, 0.0f), glm::vec3(0.25f));
 
         pointer1.intitialize(objvertices, indices, "attacksprite.vs", "attacksprite.fs");
-        pointer1.setmodel(0, glm::vec3(-0.5f, 0.7f, 0.0f), glm::vec3(0.25f));
+        pointer1.setmodel(0, glm::vec3(-0.5f, 0.4f, 0.0f), glm::vec3(0.25f));
     }
 
     void mousetranslate(GLFWwindow* window)
@@ -1862,6 +1862,8 @@ public:
                 mousetranslatesprite(window, &container[i], &changecursor);
             }
             mousetranslatesprite(window, &pointer, &changecursor);
+
+            std::cout << container[0].center1.y;
         }
         else if (menustate == 1)
         {
@@ -2099,7 +2101,7 @@ public:
     void preset()
     {
         level0.initialize();
-        level0.getmatrix("Levels/level0.txt");
+       level0.getmatrix("Levels/level0.txt");
         menu.initialize();
         menu.getmatrix("Levels/menu.txt");
         level0.knightclass.knightmovement.gamestart = 0;
